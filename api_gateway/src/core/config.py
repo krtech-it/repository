@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     project_name: str = Field(..., env='PROJECT_NAME')
     # auth_url: str = 'auth_api'
     auth_port: str = '8010'
-    auth_url: str = Field(..., env='URL_AUTH')
+    auth_url: str = os.getenv('URL_AUTH')
     # auth_port: str = Field(..., env='PORT_AUTH')
 
     def __init__(self, **data):
