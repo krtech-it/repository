@@ -15,5 +15,6 @@ async def login():
         body = response.content
         print('-------------------------------')
         print(data)
+        print(body)
         print('-------------------------------')
     return {1: 2}
