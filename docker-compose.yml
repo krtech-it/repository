@@ -6,13 +6,37 @@ services:
     container_name: postgres_auth
     restart: always
     env_file:
-      - ./.env.db.auth
+      - ./auth-service/.env.db.auth
     ports:
       - 5432:5432
 
-  redis:
+  redis_auth:
     image: redis:6.2-alpine
     container_name: redis_auth
     restart: always
     ports:
       - 6379:6379
+
+  auth_api:
+    build: ./auth-service/src
+    container_name: auth_api
+    restart: always
+    depends_on:
+      - db_auth
+      - redis_auth
+    env_file:
+      - /auth-service/.env.debug
+    expose:
+      - 8010
+
+  nginx:
+    container_name: nginx
+    image: nginx:alpine
+    restart: always
+    depends_on:
+      - auth_api
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx_config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx_config/site.conf:/etc/nginx/conf.d/site.conf:ro
