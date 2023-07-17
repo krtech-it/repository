@@ -27,6 +27,18 @@ services:
     env_file:
       - ./auth-service/.env.debug
     expose:
+      - 8020
+
+  api_gateway:
+    build: ./api_gateway/src
+    container_name: api_gateway
+    restart: always
+    depends_on:
+      - db_auth
+      - redis_auth
+    env_file:
+      - ./api_gateway/.env.debug
+    expose:
       - 8010
 
   nginx:
@@ -35,6 +47,7 @@ services:
     restart: always
     depends_on:
       - auth_api
+      - api_gateway
     ports:
       - 80:80
     volumes:
