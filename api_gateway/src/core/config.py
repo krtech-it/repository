@@ -11,9 +11,9 @@ class Settings(BaseSettings):
     auth_url: str = Field(..., env='URL_AUTH')
     auth_port: str = Field(..., env='PORT_AUTH')
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.auth_url = f'http://{self.auth_url}:{self.auth_port}'
+    # def __init__(self, **data):
+    #     super().__init__(**data)
+        # self.auth_url = f'http://{self.auth_url}:{self.auth_port}'
 
     class Config:
         env_file = '.env'
