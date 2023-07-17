@@ -26,7 +26,7 @@ services:
       - redis_auth
     env_file:
       - ./auth-service/.env.debug
-    expose:
+    ports:
       - 8010:8010
 
   api_gateway:
