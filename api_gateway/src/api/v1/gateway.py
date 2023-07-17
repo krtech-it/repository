@@ -8,5 +8,6 @@ router = APIRouter()
 
 @router.get('/login/')
 async def login():
-    x = requests.get(app_settings.url_auth).json()
+    x = {'asd': app_settings.url_auth}
+    # x = requests.get(app_settings.url_auth).json()
     return x
