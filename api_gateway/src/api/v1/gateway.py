@@ -11,7 +11,7 @@ async def login():
     # x = {'auth': app_settings.url_auth}
     response = requests.get('http://176.124.198.110:8010/api/v1/login')
     data = response.status_code
-    body = response.content
+    body = response.json()
     print('-------------------------------')
     print(data)
     print(body)
