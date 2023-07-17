@@ -8,8 +8,10 @@ load_dotenv()
 class Settings(BaseSettings):
     project_name: str = Field(..., env='PROJECT_NAME')
     url_auth: str = Field(..., env='URL_AUTH')
-    postgres_host: str = Field(..., env='POSTGRES_HOST')
-    postgres_port: int = Field(..., env='POSTGRES_PORT')
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.url_auth = f'http://{self.url_auth}:8020'
 
     class Config:
         env_file = '.env'
