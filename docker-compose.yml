@@ -27,7 +27,7 @@ services:
     env_file:
       - ./auth-service/.env.debug
     expose:
-      - 8010
+      - 8010:8010
 
   api_gateway:
     build: ./api_gateway/src
