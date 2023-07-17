@@ -11,7 +11,7 @@ async def login():
     # x = {'auth': app_settings.url_auth}
     async with httpx.AsyncClient() as client:
         response = await client.get('http://localhost:8020/api/v1/login')
-        data = response.json()
+        data = response.status_code
         print('-------------------------------')
         print(data)
         print('-------------------------------')
