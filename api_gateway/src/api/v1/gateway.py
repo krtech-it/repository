@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-import requests
+import httpx
 
 from core.config import app_settings
 
@@ -9,5 +9,10 @@ router = APIRouter()
 @router.get('/login/')
 async def login():
     # x = {'auth': app_settings.url_auth}
-    x = requests.get('http://0.0.0.0:8020/api/v1/login/').json()
-    return x
+    async with httpx.AsyncClient() as client:
+        response = await client.get('http://localhost:8020/api/v1/login')
+        data = response.json()
+        print('-------------------------------')
+        print(data)
+        print('-------------------------------')
+    return {1: 2}
