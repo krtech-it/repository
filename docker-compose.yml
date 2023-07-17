@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  db_auth:
+    image: postgres:15.2-alpine
+    container_name: postgres_auth
+    restart: always
+    env_file:
+      - ./.env.db.auth
+    ports:
+      - 5432:5432
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis_auth
+    restart: always
+    ports:
+      - 6379:6379
