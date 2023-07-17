@@ -27,7 +27,7 @@ services:
     env_file:
       - ./auth-service/.env.debug
     expose:
-      - 8020
+      - 8010
 
   api_gateway:
     build: ./api_gateway/src
@@ -39,7 +39,7 @@ services:
     env_file:
       - ./api_gateway/.env.debug
     expose:
-      - 8010
+      - 8020
 
   nginx:
     container_name: nginx
