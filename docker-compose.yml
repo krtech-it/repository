@@ -25,7 +25,7 @@ services:
       - db_auth
       - redis_auth
     env_file:
-      - /auth-service/.env.debug
+      - ./auth-service/.env.debug
     expose:
       - 8010
 
