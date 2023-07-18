@@ -1,15 +1,10 @@
-from contextlib import asynccontextmanager
-
-import logging
-
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 
-# from api.v1 import films, genres, persons
 from core.config import app_settings as settings
-from db import redis, postgres
+from db import redis
 from db.postgres import create_database
 
 from api.v1 import auth
