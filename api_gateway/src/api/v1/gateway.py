@@ -10,6 +10,5 @@ router = APIRouter()
 async def login():
     # x = {'auth': app_settings.url_auth}
     response = requests.get(f'{app_settings.auth_url}/api/v1/login')
-    data = response.status_code
     body = response.json()
     return body
