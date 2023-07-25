@@ -21,8 +21,8 @@ app = FastAPI(
 @app.on_event('startup')
 async def startup():
     redis.redis = Redis(host=settings.redis_host, port=settings.redis_port)
-    # from models.entity import User
-    # await create_database()
+    from models.entity import User
+    await create_database()
 
 app.include_router(auth.router, prefix='/api/v1/login', tags=['login'])
 
