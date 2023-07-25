@@ -1,12 +1,20 @@
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+import re
 
 
 class UserCreate(BaseModel):
     login: str
-    password: str = Field(min_length=8)
+    password: str
     first_name: str
     last_name: str
+
+    @field_validator('password')
+    def validate_password(self, value):
+        pattern = r'[a-zA-Z\d]'
+        if not re.match(pattern, value):
+            raise ValueError('слишком простой пароль')
+        return value
 
 
 class UserLogin(BaseModel):
