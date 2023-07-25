@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 
-from core.config import app_settings as settings
+from core.config import app_settings
 from db import redis
 from db.postgres import create_database
 
@@ -11,7 +11,7 @@ from api.v1 import auth
 
 
 app = FastAPI(
-    title=settings.project_name,
+    title=app_settings.project_name,
     docs_url='/api/openapi',
     openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
@@ -20,7 +20,7 @@ app = FastAPI(
 
 @app.on_event('startup')
 async def startup():
-    redis.redis = Redis(host=settings.redis_host, port=settings.redis_port)
+    redis.redis = Redis(host=app_settings.redis_host, port=app_settings.redis_port)
     from models.entity import User
     await create_database()
 
