@@ -9,7 +9,8 @@ router = APIRouter()
 
 
 @router.get('/')
-async def login(user_agent: BaseUser = Depends(get_repository_user), session: AsyncSession = Depends(get_session)):
-
+async def login(session: AsyncSession = Depends(get_session)):
+    #session: AsyncSession = Depends(get_session)
+    #user_agent: BaseUser = Depends(get_repository_user),
     # await user_agent.get_obj()
     return {1:2}
