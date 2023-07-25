@@ -1,9 +1,12 @@
 from pydantic_settings import BaseSettings
 from os import getenv
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
-    redis_host: str 
+    redis_host: str
     redis_port: int 
     pg_host: str
     pg_port: str 
