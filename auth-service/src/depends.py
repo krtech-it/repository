@@ -5,4 +5,4 @@ from db.postgres import get_session
 
 
 def get_repository_user():
-    return BaseUser(session=get_session())
+    return BaseUser(get_session())
