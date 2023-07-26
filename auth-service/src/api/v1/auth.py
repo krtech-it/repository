@@ -17,7 +17,7 @@ async def login(data: UserLogin, user_manager: BaseUser = Depends(get_repository
 
 @router.post('/sign_up/')
 async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_repository_user)):
-    try:
-        await user_manager.create_obj(data)
-    except Exception:
-        raise HTTPException(status_code=400, detail='ERRROR')
+    status = await user_manager.create_obj(data)
+    match status:
+        case "AlreadyExists":
+            raise HTTPException(status_code=400, detail='Пользовательс таким login уже существует')
