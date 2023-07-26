@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from schemas.entity import UserInDB, UserCreate
+from schemas.entity import UserInDB, UserCreate, UserLogin
 from models.entity import User
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
@@ -21,10 +21,10 @@ class BaseRepository(ABC):
 
 
 class BaseUser(BaseRepository):
-    async def find_user_by_login(self, login: str) -> Row | None:
-        query = select(User).where(User.login == login)
+    async def find_user_by_login(self, login: str) -> User | None:
+        query = select(User).filter(User.login == login)
         user = await self.session.execute(query)
-        user = user.fetchone()
+        user = user.scalar()
         return user
 
     async def create_obj(self, data: UserCreate) -> str | None:
@@ -40,6 +40,17 @@ class BaseUser(BaseRepository):
             await self.session.commit()
         else:
             return 'AlreadyExists'
+
+    async def log_in(self, data: UserLogin, Authorize):
+        user = await self.find_user_by_login(data.login)
+        print(type(user))
+        if user is None:
+            return 'DoesNotExist'
+        if not user.check_password(data.password):
+            return 'InvalidPassword'
+        # access_token = await Authorize.create_access_token(subject=user.login)
+        # return {"access_token": access_token}
+
 
     async def get_by_id_obj(self) -> UserInDB | None:
         user = await self.session.get(User, 'c205cd9d-faad-4d7f-9368-c2c26d6126f4')

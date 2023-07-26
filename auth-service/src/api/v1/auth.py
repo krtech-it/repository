@@ -6,12 +6,13 @@ router = APIRouter()
 
 
 @router.post('/')
-async def login(data: UserLogin, user_manager: BaseUser = Depends(get_repository_user)):
-    print(data.login)
-    user = await user_manager.find_user(data.login)
-    #session: AsyncSession = Depends(get_session)
-    #user_agent: BaseUser = Depends(get_repository_user),
-    # await user_agent.get_obj()
+async def login(data: UserLogin, user_manager: BaseUser = Depends(get_repository_user), Authorize: AuthJWT = Depends()):
+    user = await user_manager.log_in(data, Authorize)
+    match user:
+        case "DoesNotExist":
+            raise HTTPException(status_code=400, detail='Пользователя не существует')
+        case "InvalidPassword":
+            raise HTTPException(status_code=400, detail='Неверный пароль')
     return user
 
 
