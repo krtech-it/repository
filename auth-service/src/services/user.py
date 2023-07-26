@@ -40,6 +40,11 @@ class BaseAuthJWT:
         await self.auth.set_access_cookies(access_token)
         return access_token, refresh_token
 
+    async def check_access_token(self):
+        await self.auth.jwt_required()
+        user_data = await self.auth.get_raw_jwt()
+        return user_data
+
 
 class BaseUser(BaseRepository, BaseAuthJWT):
     async def sign_up(self, data: UserCreate) -> str | None:
@@ -57,13 +62,17 @@ class BaseUser(BaseRepository, BaseAuthJWT):
         else:
             return 'AlreadyExists'
 
-    async def log_in(self, data: UserLogin) -> dict:
+    async def log_in(self, data: UserLogin, user_agent: str) -> dict:
         user = await self.get_obj_by_attr_name(User, 'login', data.login)
         if user is None:
             return 'DoesNotExist'
         if not user.check_password(data.password):
             return 'InvalidPassword'
-        _, refresh_token = await self.create_tokens(sub=user.login, user_claims={})
+        _, refresh_token = await self.create_tokens(sub=user.login, user_claims={'user_agent': user_agent})
 
         # добавить в редис рефреш токен
         return {"refresh_token": refresh_token}
+
+    async def get_info_from_access_token(self):
+        user_data = await self.check_access_token()
+        return user_data
