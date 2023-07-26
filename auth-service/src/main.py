@@ -1,7 +1,9 @@
-import uvicorn
-from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
+import uvicorn
+from fastapi import FastAPI, Request
+from async_fastapi_jwt_auth import AuthJWT
+from async_fastapi_jwt_auth.exceptions import AuthJWTException
 
 from core.config import app_settings
 from db import redis
@@ -18,6 +20,19 @@ app = FastAPI(
 )
 
 
+@AuthJWT.load_config
+def get_config():
+    return app_settings
+
+
+@app.exception_handler(AuthJWTException)
+def authjwt_exception_handler(request: Request, exc: AuthJWTException):
+    return ORJSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.message}
+    )
+
+
 @app.on_event('startup')
 async def startup():
     redis.redis = Redis(host=app_settings.redis_host, port=app_settings.redis_port)
@@ -32,3 +47,5 @@ if __name__ == '__main__':
         host='0.0.0.0',
         port=8000,
     )
+
+

@@ -1,62 +1,69 @@
-from abc import ABC, abstractmethod
-from schemas.entity import UserInDB, UserCreate, UserLogin
+import uuid
+
+from async_fastapi_jwt_auth import AuthJWT
+
+from schemas.entity import UserCreate, UserLogin
 from models.entity import User
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.engine.row import Row
 from sqlalchemy import select
-from pydantic import BaseModel
+from db.postgres import Base
 
 
-class BaseRepository(ABC):
-    def __init__(self, session: AsyncSession):
+class BaseRepository:
+    def __init__(self, session: AsyncSession, **kwargs):
         self.session = session
+        super().__init__(**kwargs)
 
-    @abstractmethod
-    async def find_user_by_login(self, login):
-        pass
+    async def get_obj_by_attr_name(self, model: Base, attr_name: str, attr_value: str | int) -> Base | None:
+        query = select(model).filter(getattr(model, attr_name) == attr_value)
+        obj = await self.session.execute(query)
+        obj = obj.scalar()
+        return obj
 
-    @abstractmethod
-    async def create_obj(self, data: BaseModel):
-        pass
+    async def create_obj(self, model: Base, data: dict) -> None:
+        new_user = model(
+            **data
+        )
+        self.session.add(new_user)
+        await self.session.commit()
 
 
-class BaseUser(BaseRepository):
-    async def find_user_by_login(self, login: str) -> User | None:
-        query = select(User).filter(User.login == login)
-        user = await self.session.execute(query)
-        user = user.scalar()
-        return user
+class BaseAuthJWT:
+    def __init__(self, auth: AuthJWT):
+        self.auth = auth
 
-    async def create_obj(self, data: UserCreate) -> str | None:
-        user = await self.find_user_by_login(data.login)
+    async def create_tokens(self, sub: str, user_claims: dict) -> tuple[str]:
+        shared_key = str(uuid.uuid4())
+        user_claims['shared_key'] = shared_key
+        access_token = await self.auth.create_access_token(subject=sub, user_claims=user_claims)
+        refresh_token = await self.auth.create_refresh_token(subject=sub, user_claims=user_claims)
+        await self.auth.set_access_cookies(access_token)
+        return access_token, refresh_token
+
+
+class BaseUser(BaseRepository, BaseAuthJWT):
+    async def sign_up(self, data: UserCreate) -> str | None:
+        user = await self.get_obj_by_attr_name(User, 'login', data.login)
         if user is None:
-            new_user = User(
-                login=data.login,
-                password=data.password,
-                last_name=data.last_name,
-                first_name=data.first_name
+            await self.create_obj(
+                model=User,
+                data={
+                    'login': data.login,
+                    'password': data.password,
+                    'last_name': data.last_name,
+                    'first_name': data.first_name
+                }
             )
-            self.session.add(new_user)
-            await self.session.commit()
         else:
             return 'AlreadyExists'
 
-    async def log_in(self, data: UserLogin, Authorize):
-        user = await self.find_user_by_login(data.login)
-        print(type(user))
+    async def log_in(self, data: UserLogin) -> dict:
+        user = await self.get_obj_by_attr_name(User, 'login', data.login)
         if user is None:
             return 'DoesNotExist'
         if not user.check_password(data.password):
             return 'InvalidPassword'
-        # access_token = await Authorize.create_access_token(subject=user.login)
-        # return {"access_token": access_token}
+        _, refresh_token = await self.create_tokens(sub=user.login, user_claims={})
 
-
-    async def get_by_id_obj(self) -> UserInDB | None:
-        user = await self.session.get(User, 'c205cd9d-faad-4d7f-9368-c2c26d6126f4')
-        if user is not None:
-            return UserInDB(
-                id=user.id,
-                first_name=user.first_name,
-                last_name=user.last_name
-            )
+        # добавить в редис рефреш токен
+        return {"refresh_token": refresh_token}

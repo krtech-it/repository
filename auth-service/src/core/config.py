@@ -1,11 +1,11 @@
-from pydantic_settings import BaseSettings
+from pydantic import BaseModel
 from os import getenv
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-class Settings(BaseSettings):
+class Settings(BaseModel):
     redis_host: str
     redis_port: int 
     pg_host: str
@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     pg_db: str
     pg_password: str
     project_name: str
+    authjwt_secret_key: str
+    authjwt_token_location: set = {"cookies"}
 
     def __init__(self, **data):
         data["pg_user"] = getenv("POSTGRES_USER")
@@ -24,6 +26,7 @@ class Settings(BaseSettings):
         data["redis_host"] = getenv("REDIS_HOST")
         data["redis_port"] = getenv("REDIS_PORT")
         data["project_name"] = getenv("PROJECT_NAME")
+        data["authjwt_secret_key"] = getenv("SECRET_KEY")
         super().__init__(**data)
         
     def database_dsn(self):
