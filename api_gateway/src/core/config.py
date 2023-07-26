@@ -1,13 +1,12 @@
-from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic import Field, BaseModel
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
 
-class Settings(BaseSettings):
-    project_name: str = Field(..., env='PROJECT_NAME')
+class Settings(BaseModel):
+    project_name: str = os.getenv('PROJECT_NAME')
     auth_port: str = os.getenv('URL_PORT')
     auth_url: str = os.getenv('URL_AUTH')
 

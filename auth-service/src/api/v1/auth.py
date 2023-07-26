@@ -7,7 +7,7 @@ from services.user import BaseUser
 router = APIRouter()
 
 
-@router.post('/')
+@router.post('/login/')
 async def login(data: UserLogin, user_agent: Annotated[str | None, Header()] = None, user_manager: BaseUser = Depends(get_repository_user)):
     user = await user_manager.log_in(data, user_agent)
     match user:
@@ -27,6 +27,9 @@ async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_reposit
 
 
 @router.get('/get_user/')
-async def get_user(user_manager: BaseUser = Depends(get_repository_user)):
+async def get_user(user_agent: Annotated[str | None, Header()] = None, user_manager: BaseUser = Depends(get_repository_user)):
     result = await user_manager.get_info_from_access_token()
-    return result
+    if user_agent == result.get('user_agent'):
+        return result
+    # прописать логику добавления токенов в черный список в редис чтобы по ним больше нельзя было заходить
+    raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
