@@ -11,3 +11,7 @@ class CacheRedis:
 
     async def _put_object_to_cache(self, obj: str, time_cache: int = 30):
         await self.redis.set(obj, obj, time_cache)
+
+    async def _delete_object_from_cache(self, obj: str):
+        await self.redis.delete(obj)
+

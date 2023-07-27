@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from typing import Annotated
 from depends import get_repository_user
 from schemas.entity import UserCreate, UserLogin
@@ -28,8 +28,23 @@ async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_reposit
 
 @router.get('/get_user/')
 async def get_user(user_agent: Annotated[str | None, Header()] = None, user_manager: BaseUser = Depends(get_repository_user)):
-    result = await user_manager.get_info_from_access_token()
-    if user_agent == result.get('user_agent'):
-        return result
-    # прописать логику добавления токенов в черный список в редис чтобы по ним больше нельзя было заходить
-    raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
+    result = await user_manager.get_info_from_access_token(user_agent)
+    match result:
+        case "UnsafeEntry":
+            raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
+        case "InvalidAccessToken":
+            raise HTTPException(status_code=422, detail='Signature has expired')
+    return result
+
+
+@router.post('/refresh/')
+async def refresh(request: Request, user_agent: Annotated[str | None, Header()] = None, user_manager: BaseUser = Depends(get_repository_user)):
+    result = await user_manager.refresh_token(user_agent, request)
+    match result:
+        case "UnsafeEntry":
+            raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
+        case "InvalidAccessRefreshTokens":
+            raise HTTPException(status_code=422, detail='access токен не принадлежит refresh токену')
+        case "InvalidRefreshToken":
+            raise HTTPException(status_code=422, detail='Signature has expired')
+    return result

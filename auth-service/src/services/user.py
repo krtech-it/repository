@@ -1,52 +1,13 @@
-import uuid
-
-from async_fastapi_jwt_auth import AuthJWT
-
 from schemas.entity import UserCreate, UserLogin
 from models.entity import User
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from db.postgres import Base
+from services.repository import BaseRepository
+from services.auth_jwt import BaseAuthJWT
+from services.redis_cache import CacheRedis
+from core.config import app_settings
+from time import time
 
 
-class BaseRepository:
-    def __init__(self, session: AsyncSession, **kwargs):
-        self.session = session
-        super().__init__(**kwargs)
-
-    async def get_obj_by_attr_name(self, model: Base, attr_name: str, attr_value: str | int) -> Base | None:
-        query = select(model).filter(getattr(model, attr_name) == attr_value)
-        obj = await self.session.execute(query)
-        obj = obj.scalar()
-        return obj
-
-    async def create_obj(self, model: Base, data: dict) -> None:
-        new_user = model(
-            **data
-        )
-        self.session.add(new_user)
-        await self.session.commit()
-
-
-class BaseAuthJWT:
-    def __init__(self, auth: AuthJWT):
-        self.auth = auth
-
-    async def create_tokens(self, sub: str, user_claims: dict) -> tuple[str]:
-        shared_key = str(uuid.uuid4())
-        user_claims['shared_key'] = shared_key
-        access_token = await self.auth.create_access_token(subject=sub, user_claims=user_claims)
-        refresh_token = await self.auth.create_refresh_token(subject=sub, user_claims=user_claims)
-        await self.auth.set_access_cookies(access_token)
-        return access_token, refresh_token
-
-    async def check_access_token(self):
-        await self.auth.jwt_required()
-        user_data = await self.auth.get_raw_jwt()
-        return user_data
-
-
-class BaseUser(BaseRepository, BaseAuthJWT):
+class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
     async def sign_up(self, data: UserCreate) -> str | None:
         user = await self.get_obj_by_attr_name(User, 'login', data.login)
         if user is None:
@@ -70,9 +31,31 @@ class BaseUser(BaseRepository, BaseAuthJWT):
             return 'InvalidPassword'
         _, refresh_token = await self.create_tokens(sub=user.login, user_claims={'user_agent': user_agent})
 
-        # добавить в редис рефреш токен
+        await self._put_object_to_cache(obj=refresh_token, time_cache=app_settings.authjwt_time_refresh)
         return {"refresh_token": refresh_token}
 
-    async def get_info_from_access_token(self):
+    async def get_info_from_access_token(self, user_agent):
         user_data = await self.check_access_token()
-        return user_data
+        if await self._object_from_cache(obj=user_data.get('jti')):
+            return "InvalidAccessToken"
+        elif user_agent != user_data.get('user_agent'):
+            time_cache = user_data.get('exp', int(time())) - int(time())
+            await self._put_object_to_cache(obj=user_data.get('jti'), time_cache=time_cache)
+            return "UnsafeEntry"
+        else:
+            return user_data
+
+    async def refresh_token(self, user_agent, request):
+        refresh_token = request.cookies.get(app_settings.authjwt_refresh_cookie_key)
+        if not await self._object_from_cache(obj=refresh_token):
+            return "InvalidRefreshToken"
+
+        await self._delete_object_from_cache(obj=refresh_token)
+        uuid_access = request.cookies.get(app_settings.authjwt_access_cookie_key).split('.')[-1]
+        data = await self.check_refresh_token()
+        if data.get('uuid_access', '') != uuid_access:
+            return "InvalidAccessRefreshTokens"
+        elif data.get('user_agent', '') != user_agent:
+            return "UnsafeEntry"
+        _, refresh_token = await self.create_tokens(sub=data.get('sub'), user_claims={'user_agent': user_agent})
+        await self._put_object_to_cache(refresh_token, app_settings.authjwt_time_refresh)

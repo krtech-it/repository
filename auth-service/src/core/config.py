@@ -16,6 +16,11 @@ class Settings(BaseModel):
     project_name: str
     authjwt_secret_key: str
     authjwt_token_location: set = {"cookies"}
+    authjwt_cookie_csrf_protect: bool = False
+    authjwt_access_cookie_key: str = 'access_token_cookie'
+    authjwt_refresh_cookie_key: str = 'refresh_token_cookie'
+    authjwt_time_access: int
+    authjwt_time_refresh: int
 
     def __init__(self, **data):
         data["pg_user"] = getenv("POSTGRES_USER")
@@ -27,6 +32,8 @@ class Settings(BaseModel):
         data["redis_port"] = getenv("REDIS_PORT")
         data["project_name"] = getenv("PROJECT_NAME")
         data["authjwt_secret_key"] = getenv("SECRET_KEY")
+        data["authjwt_time_access"] = getenv("TIME_LIFE_ACCESS")
+        data["authjwt_time_refresh"] = getenv("TIME_LIFE_REFRESH")
         super().__init__(**data)
         
     def database_dsn(self):
