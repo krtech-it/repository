@@ -8,14 +8,16 @@ router = APIRouter()
 
 
 @router.post('/login/')
-async def login(data: UserLogin, user_agent: Annotated[str | None, Header()] = None, user_manager: BaseUser = Depends(get_repository_user)):
+async def login(
+        data: UserLogin, user_agent: Annotated[str | None, Header()] = None,
+        user_manager: BaseUser = Depends(get_repository_user)
+):
     user = await user_manager.log_in(data, user_agent)
     match user:
         case "DoesNotExist":
             raise HTTPException(status_code=400, detail='Пользователя не существует')
         case "InvalidPassword":
             raise HTTPException(status_code=400, detail='Неверный пароль')
-    return user
 
 
 @router.post('/sign_up/')
@@ -27,7 +29,10 @@ async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_reposit
 
 
 @router.get('/get_user/')
-async def get_user(user_agent: Annotated[str | None, Header()] = None, user_manager: BaseUser = Depends(get_repository_user)):
+async def get_user(
+        user_agent: Annotated[str | None, Header()] = None,
+        user_manager: BaseUser = Depends(get_repository_user)
+):
     result = await user_manager.get_info_from_access_token(user_agent)
     match result:
         case "UnsafeEntry":
@@ -38,7 +43,10 @@ async def get_user(user_agent: Annotated[str | None, Header()] = None, user_mana
 
 
 @router.post('/refresh/')
-async def refresh(request: Request, user_agent: Annotated[str | None, Header()] = None, user_manager: BaseUser = Depends(get_repository_user)):
+async def refresh(
+        request: Request, user_agent: Annotated[str | None, Header()] = None,
+        user_manager: BaseUser = Depends(get_repository_user)
+):
     result = await user_manager.refresh_token(user_agent, request)
     match result:
         case "UnsafeEntry":

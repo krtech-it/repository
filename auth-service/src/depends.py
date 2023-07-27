@@ -7,5 +7,9 @@ from db.postgres import get_session
 from db.redis import get_redis, Redis
 
 
-def get_repository_user(session: AsyncSession = Depends(get_session), Authorize: AuthJWT = Depends(), redis: Redis = Depends(get_redis)):
-    return BaseUser(session=session, auth=Authorize, redis=redis)
+def get_repository_user(
+        session: AsyncSession = Depends(get_session),
+        authorize: AuthJWT = Depends(),
+        redis: Redis = Depends(get_redis)
+):
+    return BaseUser(session=session, auth=authorize, redis=redis)

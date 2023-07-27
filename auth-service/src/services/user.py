@@ -1,3 +1,5 @@
+from fastapi import Request
+
 from schemas.entity import UserCreate, UserLogin
 from models.entity import User
 from services.repository import BaseRepository
@@ -23,7 +25,7 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
         else:
             return 'AlreadyExists'
 
-    async def log_in(self, data: UserLogin, user_agent: str) -> dict:
+    async def log_in(self, data: UserLogin, user_agent: str) -> None | str:
         user = await self.get_obj_by_attr_name(User, 'login', data.login)
         if user is None:
             return 'DoesNotExist'
@@ -32,9 +34,8 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
         _, refresh_token = await self.create_tokens(sub=user.login, user_claims={'user_agent': user_agent})
 
         await self._put_object_to_cache(obj=refresh_token, time_cache=app_settings.authjwt_time_refresh)
-        return {"refresh_token": refresh_token}
 
-    async def get_info_from_access_token(self, user_agent):
+    async def get_info_from_access_token(self, user_agent: str) -> dict | str:
         user_data = await self.check_access_token()
         if await self._object_from_cache(obj=user_data.get('jti')):
             return "InvalidAccessToken"
@@ -45,7 +46,7 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
         else:
             return user_data
 
-    async def refresh_token(self, user_agent, request):
+    async def refresh_token(self, user_agent: str, request: Request) -> str | None:
         refresh_token = request.cookies.get(app_settings.authjwt_refresh_cookie_key)
         if not await self._object_from_cache(obj=refresh_token):
             return "InvalidRefreshToken"

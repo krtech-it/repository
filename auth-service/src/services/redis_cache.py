@@ -14,4 +14,3 @@ class CacheRedis:
 
     async def _delete_object_from_cache(self, obj: str):
         await self.redis.delete(obj)
-

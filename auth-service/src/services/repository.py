@@ -20,4 +20,3 @@ class BaseRepository:
         )
         self.session.add(new_user)
         await self.session.commit()
-        

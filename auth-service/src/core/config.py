@@ -7,9 +7,9 @@ load_dotenv()
 
 class Settings(BaseModel):
     redis_host: str
-    redis_port: int 
+    redis_port: int
     pg_host: str
-    pg_port: str 
+    pg_port: str
     pg_user: str
     pg_db: str
     pg_password: str
@@ -35,7 +35,7 @@ class Settings(BaseModel):
         data["authjwt_time_access"] = getenv("TIME_LIFE_ACCESS")
         data["authjwt_time_refresh"] = getenv("TIME_LIFE_REFRESH")
         super().__init__(**data)
-        
+
     def database_dsn(self):
         return f"postgresql+asyncpg://{self.pg_user}:{self.pg_password}@{self.pg_host}:{self.pg_port}/{self.pg_db}"
 
