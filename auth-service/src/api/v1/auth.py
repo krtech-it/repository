@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Header, Request
+from fastapi import APIRouter, Depends, HTTPException, Header, Request, Cookie
 from typing import Annotated
 from depends import get_repository_user
 from schemas.entity import UserCreate, UserLogin
 from services.user import BaseUser
+from core.config import ErrorName
 
 router = APIRouter()
 
@@ -14,9 +15,9 @@ async def login(
 ):
     user = await user_manager.log_in(data, user_agent)
     match user:
-        case "DoesNotExist":
+        case ErrorName.DoesNotExist:
             raise HTTPException(status_code=400, detail='Пользователя не существует')
-        case "InvalidPassword":
+        case ErrorName.InvalidPassword:
             raise HTTPException(status_code=400, detail='Неверный пароль')
 
 
@@ -24,7 +25,7 @@ async def login(
 async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_repository_user)):
     status = await user_manager.sign_up(data)
     match status:
-        case "AlreadyExists":
+        case ErrorName.AlreadyExists:
             raise HTTPException(status_code=400, detail='Пользователь с таким login уже существует')
 
 
@@ -35,9 +36,9 @@ async def get_user(
 ):
     result = await user_manager.get_info_from_access_token(user_agent)
     match result:
-        case "UnsafeEntry":
+        case ErrorName.UnsafeEntry:
             raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
-        case "InvalidAccessToken":
+        case ErrorName.InvalidAccessToken:
             raise HTTPException(status_code=422, detail='Signature has expired')
     return result
 
@@ -45,14 +46,19 @@ async def get_user(
 @router.post('/refresh/')
 async def refresh(
         request: Request, user_agent: Annotated[str | None, Header()] = None,
-        user_manager: BaseUser = Depends(get_repository_user)
+        user_manager: BaseUser = Depends(get_repository_user),
 ):
     result = await user_manager.refresh_token(user_agent, request)
     match result:
-        case "UnsafeEntry":
+        case ErrorName.UnsafeEntry:
             raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
-        case "InvalidAccessRefreshTokens":
+        case ErrorName.InvalidAccessRefreshTokens:
             raise HTTPException(status_code=422, detail='access токен не принадлежит refresh токену')
-        case "InvalidRefreshToken":
+        case ErrorName.InvalidRefreshToken:
             raise HTTPException(status_code=422, detail='Signature has expired')
     return result
+
+
+@router.get('/logout/')
+async def logout(request: Request, user_manager: BaseUser = Depends(get_repository_user)):
+    await user_manager.logout(request)

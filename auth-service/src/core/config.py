@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from os import getenv
 from dotenv import load_dotenv
+from enum import Enum
 
 load_dotenv()
 
@@ -38,6 +39,16 @@ class Settings(BaseModel):
 
     def database_dsn(self):
         return f"postgresql+asyncpg://{self.pg_user}:{self.pg_password}@{self.pg_host}:{self.pg_port}/{self.pg_db}"
+
+
+class ErrorName(Enum):
+    DoesNotExist = "DoesNotExist"
+    InvalidPassword = "InvalidPassword"
+    AlreadyExists = "AlreadyExists"
+    UnsafeEntry = "UnsafeEntry"
+    InvalidAccessToken = "InvalidAccessToken"
+    InvalidAccessRefreshTokens = "InvalidAccessRefreshTokens"
+    InvalidRefreshToken = "InvalidRefreshToken"
 
 
 app_settings = Settings()

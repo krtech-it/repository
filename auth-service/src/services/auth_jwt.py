@@ -35,3 +35,7 @@ class BaseAuthJWT:
         await self.auth.jwt_refresh_token_required()
         user_data = await self.auth.get_raw_jwt()
         return user_data
+
+    async def jwt_logout(self) -> None:
+        await self.auth.jwt_required()
+        await self.auth.unset_jwt_cookies()

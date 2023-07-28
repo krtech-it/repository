@@ -20,7 +20,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
 
-    def __init__(self,is_admin: bool, login: str, password: str, first_name: str, last_name: str, role_id: UUID) -> None:
+    def __init__(self, login: str, password: str, first_name: str, last_name: str, role_id: UUID, is_admin: bool = False) -> None:
         self.is_admin = is_admin
         self.login = login
         self.password = generate_password_hash(password)
