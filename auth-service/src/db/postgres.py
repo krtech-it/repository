@@ -21,3 +21,12 @@ async def create_database() -> None:
 async def purge_database() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+async def create_role(model, data) -> None:
+    session = await get_session()
+    new_user = model(
+        **data
+    )
+    session.add(new_user)
+    await session.commit()
