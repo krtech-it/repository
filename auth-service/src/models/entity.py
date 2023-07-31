@@ -34,6 +34,7 @@ class User(Base):
     def __repr__(self) -> str:
         return f'<User {self.login}>'
 
+
 class Role(Base):
     __tablename__ = 'roles'
 
