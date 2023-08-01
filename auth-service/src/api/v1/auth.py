@@ -25,8 +25,12 @@ async def login(
 async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_repository_user)):
     status = await user_manager.sign_up(data)
     match status:
-        case ErrorName.AlreadyExists:
+        case ErrorName.LoginAlreadyExists:
             raise HTTPException(status_code=400, detail='Пользователь с таким login уже существует')
+        case ErrorName.EmailAlreadyExists:
+            raise HTTPException(status_code=400, detail='Пользователь с таким email уже существует')
+        case ErrorName.DefaultRoleDoesNotExists:
+            raise HTTPException(status_code=400, detail='Нет стандартной роли, не удается создать пользователя')
 
 
 @router.get('/get_user/')

@@ -13,14 +13,14 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
     async def sign_up(self, data: UserCreate) -> str | ErrorName:
         user = await self.get_obj_by_attr_name(User, 'login', data.login)
         if user is not None:
-            return ErrorName.AlreadyExists
+            return ErrorName.LoginAlreadyExists
         user = await self.get_obj_by_attr_name(User, 'email', data.email)
         if user is not None:
-            return ErrorName.AlreadyExists
+            return ErrorName.EmailAlreadyExists
 
         role = await self.get_first_obj_order_by_attr_name(Role, 'lvl')
         if role is None:
-            return ErrorName.AlreadyExists
+            return ErrorName.DefaultRoleDoesNotExists
 
         await self.create_obj(
             model=User,

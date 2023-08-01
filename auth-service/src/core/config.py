@@ -44,11 +44,13 @@ class Settings(BaseModel):
 class ErrorName(Enum):
     DoesNotExist = "DoesNotExist"
     InvalidPassword = "InvalidPassword"
-    AlreadyExists = "AlreadyExists"
+    LoginAlreadyExists = "LoginAlreadyExists"
+    EmailAlreadyExists = "EmailAlreadyExists"
     UnsafeEntry = "UnsafeEntry"
     InvalidAccessToken = "InvalidAccessToken"
     InvalidAccessRefreshTokens = "InvalidAccessRefreshTokens"
     InvalidRefreshToken = "InvalidRefreshToken"
+    DefaultRoleDoesNotExists = "DefaultRoleDoesNotExists"
 
 
 app_settings = Settings()
