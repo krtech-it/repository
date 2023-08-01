@@ -14,6 +14,12 @@ class BaseRepository:
         obj = obj.scalar()
         return obj
 
+    async def get_first_obj_order_by_attr_name(self, model: Base, attr_name: str) -> Base | None:
+        query = select(model).order_by(getattr(model, attr_name))
+        obj = await self.session.execute(query)
+        obj = obj.scalar()
+        return obj
+
     async def create_obj(self, model: Base, data: dict) -> None:
         new_user = model(
             **data
