@@ -5,11 +5,13 @@ from models.entity import User, Role
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
 from services.redis_cache import CacheRedis
+from services.role import BaseRole
 from core.config import app_settings, ErrorName
 from time import time
 
 
 class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
+
     async def sign_up(self, data: UserCreate) -> str | ErrorName:
         user = await self.get_obj_by_attr_name(User, 'login', data.login)
         if user is not None:
@@ -20,7 +22,9 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
 
         role = await self.get_first_obj_order_by_attr_name(Role, 'lvl')
         if role is None:
-            return ErrorName.DefaultRoleDoesNotExists
+            role_manager = BaseRole(self.session)
+            await role_manager.create_default_role()
+            role = await self.get_first_obj_order_by_attr_name(Role, 'lvl')
 
         await self.create_obj(
             model=User,
@@ -30,6 +34,7 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
                 'last_name': data.last_name,
                 'first_name': data.first_name,
                 'role_id': role.id,
+                'email': data.email,
             }
         )
 
