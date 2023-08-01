@@ -21,8 +21,8 @@ class BaseRepository:
         return obj
 
     async def create_obj(self, model: Base, data: dict) -> None:
-        new_user = model(
+        new_db_obj = model(
             **data
         )
-        self.session.add(new_user)
+        self.session.add(new_db_obj)
         await self.session.commit()

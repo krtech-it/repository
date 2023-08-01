@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Header, Request, Cookie
 from typing import Annotated
-from depends import get_repository_user
+from depends import get_repository_user, get_repository_role
 from schemas.entity import UserCreate, UserLogin
 from services.user import BaseUser
+from services.role import BaseRole
 from core.config import ErrorName
 
 router = APIRouter()
@@ -22,7 +23,8 @@ async def login(
 
 
 @router.post('/sign_up/')
-async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_repository_user)):
+async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_repository_user),
+        role_manager: BaseRole = Depends(get_repository_role)):
     status = await user_manager.sign_up(data)
     match status:
         case ErrorName.LoginAlreadyExists:
