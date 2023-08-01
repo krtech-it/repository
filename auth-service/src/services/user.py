@@ -45,7 +45,10 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
             return ErrorName.DoesNotExist
         if not user.check_password(data.password):
             return ErrorName.InvalidPassword
-        _, refresh_token = await self.create_tokens(sub=user.login, user_claims={'user_agent': user_agent})
+        _, refresh_token = await self.create_tokens(sub=user.login, user_claims={
+            'user_agent': user_agent,
+            'is_admin': user.is_admin
+            })
 
         await self._put_object_to_cache(obj=refresh_token, time_cache=app_settings.authjwt_time_refresh)
 
@@ -72,7 +75,12 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
             return ErrorName.InvalidAccessRefreshTokens
         elif data.get('user_agent', '') != user_agent:
             return ErrorName.UnsafeEntry
-        _, refresh_token = await self.create_tokens(sub=data.get('sub'), user_claims={'user_agent': user_agent})
+        _, refresh_token = await self.create_tokens(
+            sub=data.get('sub'),
+            user_claims={
+                'user_agent': user_agent, 
+                'is_admin': data.get('is_admin')
+                })
         await self._put_object_to_cache(refresh_token, app_settings.authjwt_time_refresh)
 
     async def logout(self, request: Request) -> None:

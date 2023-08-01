@@ -68,9 +68,3 @@ async def refresh(
 @router.get('/logout/')
 async def logout(request: Request, user_manager: BaseUser = Depends(get_repository_user)):
     await user_manager.logout(request)
-
-# @router.get('/profil/')
-# async def profil_user(
-#         user_agent: Annotated[str | None, Header()] = None,
-#         user_manager: BaseUser = Depends(get_repository_user)):
-#     pass
