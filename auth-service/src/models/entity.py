@@ -14,19 +14,21 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
     login = Column(String(255), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     first_name = Column(String(50))
     last_name = Column(String(50))
     created_at = Column(DateTime, default=datetime.utcnow)
     role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
 
-    def __init__(self, login: str, password: str, first_name: str, last_name: str, role_id: UUID, is_admin: bool = False) -> None:
+    def __init__(self, login: str, password: str, first_name: str, last_name: str, role_id: UUID, email: str, is_admin: bool = False) -> None:
         self.is_admin = is_admin
         self.login = login
         self.password = generate_password_hash(password)
         self.first_name = first_name
         self.last_name = last_name
         self.role_id = role_id
+        self.email = email
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password, password)

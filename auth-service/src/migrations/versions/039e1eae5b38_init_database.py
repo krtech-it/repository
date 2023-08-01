@@ -1,8 +1,8 @@
-"""database creation2
+"""init database
 
-Revision ID: 81e806227fb5
+Revision ID: 039e1eae5b38
 Revises: 
-Create Date: 2023-07-31 16:15:06.436497
+Create Date: 2023-08-01 14:42:08.953124
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '81e806227fb5'
+revision = '039e1eae5b38'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,6 +33,7 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('is_admin', sa.Boolean(), nullable=False),
     sa.Column('login', sa.String(length=255), nullable=False),
+    sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('password', sa.String(length=255), nullable=False),
     sa.Column('first_name', sa.String(length=50), nullable=True),
     sa.Column('last_name', sa.String(length=50), nullable=True),
@@ -40,6 +41,7 @@ def upgrade() -> None:
     sa.Column('role_id', sa.UUID(), nullable=True),
     sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email'),
     sa.UniqueConstraint('id'),
     sa.UniqueConstraint('login')
     )

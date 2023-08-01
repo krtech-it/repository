@@ -1,7 +1,7 @@
 from fastapi import Request
 
 from schemas.entity import UserCreate, UserLogin
-from models.entity import User
+from models.entity import User, Role
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
 from services.redis_cache import CacheRedis
@@ -12,19 +12,27 @@ from time import time
 class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
     async def sign_up(self, data: UserCreate) -> str | ErrorName:
         user = await self.get_obj_by_attr_name(User, 'login', data.login)
-        if user is None:
-            await self.create_obj(
-                model=User,
-                data={
-                    'login': data.login,
-                    'password': data.password,
-                    'last_name': data.last_name,
-                    'first_name': data.first_name,
-                    'role_id': 'c3a6c3be-740c-4a1b-b12f-d7eed0576400', #пока тут хардкод, но это надо менять
-                }
-            )
-        else:
+        if user is not None:
             return ErrorName.AlreadyExists
+        user = await self.get_obj_by_attr_name(User, 'email', data.email)
+        if user is not None:
+            return ErrorName.AlreadyExists
+
+        role = await self.get_first_obj_order_by_attr_name(Role, 'lvl')
+        if role is None:
+            return ErrorName.AlreadyExists
+
+        await self.create_obj(
+            model=User,
+            data={
+                'login': data.login,
+                'password': data.password,
+                'last_name': data.last_name,
+                'first_name': data.first_name,
+                'role_id': role.id,
+            }
+        )
+
 
     async def log_in(self, data: UserLogin, user_agent: str) -> None | ErrorName:
         user = await self.get_obj_by_attr_name(User, 'login', data.login)

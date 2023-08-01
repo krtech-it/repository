@@ -29,7 +29,8 @@ def create_superuser(
         login: str = 'admin',
         password: str = 'admin',
         first_name: str = 'admin',
-        last_name: str = 'admin'
+        last_name: str = 'admin',
+        email: str = 'test@test.ru'
 ):
     data = {
         'is_admin': True,
@@ -37,6 +38,7 @@ def create_superuser(
         'password': password,
         'first_name': first_name,
         'last_name': last_name,
+        'email': email,
     }
     result = asyncio.run(command_create_user(BaseRepository, User, Role, data))
     print(result)
