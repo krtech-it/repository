@@ -45,7 +45,7 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
             return ErrorName.DoesNotExist
         if not user.check_password(data.password):
             return ErrorName.InvalidPassword
-        _, refresh_token = await self.create_tokens(sub=user.login, user_claims={
+        _, refresh_token = await self.create_tokens(sub=user.id, user_claims={
             'user_agent': user_agent,
             'is_admin': user.is_admin
             })
@@ -92,3 +92,20 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
         await self._delete_object_from_cache(obj=refresh_token)
 
         await self.jwt_logout()
+
+
+class UserManage:
+    '''
+    Класс для управления личным кабинетом пользователя
+    '''
+
+    def __init__(self, manager_auth: BaseUser, manager_role: BaseRole):
+        self.manager_auth = manager_auth
+        self.manager_role = manager_role
+
+
+    async def get_user_data(self, user_agent: str):
+        user_data = await self.manager_auth.get_info_from_access_token(user_agent)
+        user_id = user_data.get("sub")
+        user_obj = await self.get_obj_by_attr_name(User, "id", user_id)
+        return user_obj.__dict__()
