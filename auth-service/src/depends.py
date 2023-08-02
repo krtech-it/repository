@@ -2,7 +2,7 @@ from async_fastapi_jwt_auth import AuthJWT
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 
-from services.user import BaseUser
+from services.user import BaseUser, UserManage
 from services.role import BaseRole
 from services.admin import BaseAdmin
 from db.postgres import get_session
@@ -28,3 +28,10 @@ def get_admin(
         manager_role: BaseRole = Depends(get_repository_role)
 ):
     return BaseAdmin(manager_auth=manager_auth, manager_role=manager_role)
+
+
+def get_user_manage(
+        manager_auth: BaseUser = Depends(get_repository_user),
+        manager_role: BaseRole = Depends(get_repository_role)
+):
+    return UserManage(manager_auth=manager_auth, manager_role=manager_role)
