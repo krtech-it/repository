@@ -1,13 +1,20 @@
 from fastapi import Request
+from pydantic import BaseModel
+from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 from schemas.entity import UserCreate, UserLogin
-from models.entity import User, Role
+from models.entity import User, Role, Base
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
 from services.redis_cache import CacheRedis
 from services.role import BaseRole
 from core.config import app_settings, ErrorName
 from time import time
+
+
+class FieldFilter(BaseModel):
+    attr_name: str
+    attr_value: int | str
 
 
 class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
@@ -22,12 +29,21 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
                                либо объект класса ErrorName с ошибкой (например, если пользователь с таким
                                логином или email уже существует).
         """
-        user = await self.get_obj_by_attr_name(User, 'login', data.login)
-        if user is not None:
-            return ErrorName.LoginAlreadyExists
-        user = await self.get_obj_by_attr_name(User, 'email', data.email)
-        if user is not None:
-            return ErrorName.EmailAlreadyExists
+        data_filter = [
+            {
+                'model': User,
+                'fields': [
+                    FieldFilter(attr_name='login', attr_value=data.login),
+                    FieldFilter(attr_name='email', attr_value=data.email)
+                ]
+            },
+        ]
+        users = await self.get_list_obj_by_list_attr_name_method_or(User, data_filter)
+        for user in users.iterator:
+            if user.login == data.login:
+                return ErrorName.LoginAlreadyExists
+            if user.email == data.email:
+                return ErrorName.EmailAlreadyExists
 
         role = await self.get_first_obj_order_by_attr_name(Role, 'lvl')
         if role is None:

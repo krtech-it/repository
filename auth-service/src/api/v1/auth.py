@@ -23,8 +23,7 @@ async def login(
 
 
 @router.post('/sign_up/')
-async def sign_up(data: UserCreate, user_manager: BaseAuth = Depends(get_repository_user),
-        role_manager: BaseRole = Depends(get_repository_role)):
+async def sign_up(data: UserCreate, user_manager: BaseAuth = Depends(get_repository_user)):
     status = await user_manager.sign_up(data)
     match status:
         case ErrorName.LoginAlreadyExists:

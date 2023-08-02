@@ -1,5 +1,7 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, Select
+from sqlalchemy import select, or_, Select, Result
 from db.postgres import Base
 
 
@@ -20,7 +22,26 @@ class BaseRepository:
         obj = obj.scalar()
         return obj
 
-    # async def _create_data_filter(self, model, ):
+    async def _get_list_obj(self, query: Select) -> Result[Any]:
+        list_obj = await self.session.execute(query)
+        return list_obj
+
+    @classmethod
+    async def _create_data_filter(cls, data_filter: dict) -> list:
+        """
+        Создает фильтр для запроса в базу данных на основе данных из словаря data_filter.
+
+        :param data_filter: (Dict) Словарь с данными для создания фильтра. Каждый элемент в словаре должен содержать
+                            информацию о модели и списке атрибутов для фильтрации.
+        :return:
+        List: Возвращает список фильтров, которые будут использоваться в запросе в базу данных.
+        """
+        query_filter = []
+        for i in data_filter:
+            model = i.get('model')
+            for field in i.get('fields', []):
+                query_filter.append(getattr(model, field.attr_name) == field.attr_value)
+        return query_filter
 
     async def get_obj_by_pk(self, model: Base, pk: int | str) -> Base | None:
         """
@@ -49,7 +70,18 @@ class BaseRepository:
         query = select(model).filter(getattr(model, attr_name) == attr_value)
         return await self._get_obj(query)
 
-    # async def get_list_obj_by_list_attr_name_or(self, model, ):
+    async def get_list_obj_by_list_attr_name_method_or(self, model: Base, data_filter: dict) -> Result[Any]:
+        """
+         Получает список объектов из базы данных, используя оператор OR для фильтрации.
+
+        :param model: (Base) Класс модели SQLAlchemy, из которой нужно получить список объектов.
+        :param data_filter: (Dict) Словарь с данными для фильтрации объектов.
+        :return:
+        ChunkedIteratorResult: Возвращает результат получения списка объектов, возможно с постраничной разбивкой.
+        """
+        query_filter = await self._create_data_filter(data_filter)
+        query = select(model).filter(or_(*query_filter))
+        return await self._get_list_obj(query)
 
     async def get_first_obj_order_by_attr_name(self, model: Base, attr_name: str) -> Base | None:
         """
