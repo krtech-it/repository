@@ -1,8 +1,10 @@
-from typing import Any
+from typing import Any, Sequence
 
+from sqlalchemy.engine.result import _TP
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, Select, Result
+from sqlalchemy import select, or_, Select, Result, Row
 from db.postgres import Base
+from models.entity import Role, User
 
 
 class BaseRepository:
@@ -22,12 +24,12 @@ class BaseRepository:
         obj = obj.scalar()
         return obj
 
-    async def _get_list_obj(self, query: Select) -> Result[Any]:
+    async def _get_list_obj(self, query: Select) -> Sequence[Row[_TP]]:
         list_obj = await self.session.execute(query)
-        return list_obj
+        return list_obj.all()
 
     @classmethod
-    async def _create_data_filter(cls, data_filter: dict) -> list:
+    async def _create_data_filter(cls, data_filter: dict) -> tuple:
         """
         Создает фильтр для запроса в базу данных на основе данных из словаря data_filter.
 
@@ -37,11 +39,13 @@ class BaseRepository:
         List: Возвращает список фильтров, которые будут использоваться в запросе в базу данных.
         """
         query_filter = []
+        model_list = []
         for i in data_filter:
             model = i.get('model')
+            model_list.append(model)
             for field in i.get('fields', []):
                 query_filter.append(getattr(model, field.attr_name) == field.attr_value)
-        return query_filter
+        return model_list, query_filter
 
     async def get_obj_by_pk(self, model: Base, pk: int | str) -> Base | None:
         """
@@ -70,7 +74,7 @@ class BaseRepository:
         query = select(model).filter(getattr(model, attr_name) == attr_value)
         return await self._get_obj(query)
 
-    async def get_list_obj_by_list_attr_name_method_or(self, model: Base, data_filter: dict) -> Result[Any]:
+    async def get_list_obj_by_list_attr_name_operator_or(self, data_filter: dict) -> Sequence[Row[_TP]]:
         """
          Получает список объектов из базы данных, используя оператор OR для фильтрации.
 
@@ -79,8 +83,8 @@ class BaseRepository:
         :return:
         ChunkedIteratorResult: Возвращает результат получения списка объектов, возможно с постраничной разбивкой.
         """
-        query_filter = await self._create_data_filter(data_filter)
-        query = select(model).filter(or_(*query_filter))
+        model_list, query_filter = await self._create_data_filter(data_filter)
+        query = select(*model_list).filter(or_(*query_filter))
         return await self._get_list_obj(query)
 
     async def get_first_obj_order_by_attr_name(self, model: Base, attr_name: str) -> Base | None:
@@ -93,7 +97,7 @@ class BaseRepository:
         Base | None: Возвращает первый объект из базы данных, отсортированный по указанному атрибуту,
                      либо None, если объекты не были найдены.
         """
-        query = select(model).order_by(getattr(model, attr_name))
+        query = select(model).order_by(getattr(model, attr_name)).limit(1)
         return await self._get_obj(query)
 
     async def create_obj(self, model: Base, data: dict) -> None:
@@ -110,3 +114,10 @@ class BaseRepository:
         )
         self.session.add(new_db_obj)
         await self.session.commit()
+
+    async def test_join(self):
+        query = select(User, Role).join(Role, User.role_id == Role.id).filter(User.login == 'admin')
+        x = await self._get_list_obj(query)
+        print(x)
+        for i in x:
+            print([type(j) for j in i])

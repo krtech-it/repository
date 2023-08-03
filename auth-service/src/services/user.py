@@ -38,7 +38,7 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
                 ]
             },
         ]
-        users = await self.get_list_obj_by_list_attr_name_method_or(User, data_filter)
+        users = await self.get_list_obj_by_list_attr_name_operator_or(data_filter)
         for user in users.iterator:
             if user.login == data.login:
                 return ErrorName.LoginAlreadyExists
