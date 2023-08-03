@@ -16,6 +16,11 @@ class UserProfil(BaseModel):
     name_role: str
     email: str
 
+class ChangeProfil(BaseModel):
+    login: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
 
 class UserLogin(BaseModel):
     login: str

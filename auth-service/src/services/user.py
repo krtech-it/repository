@@ -1,6 +1,6 @@
 from fastapi import Request
 
-from schemas.entity import UserCreate, UserLogin, UserProfil
+from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil
 from models.entity import User, Role
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
@@ -111,15 +111,44 @@ class UserManage:
 
         user_data = await self.manager_auth.get_info_from_access_token(user_agent)
         user_id = user_data.get("sub")
-        result: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
-        if isinstance(result, User):
-            role: Role = await self.manager_role.get_role(str(result.role_id))
-            profil = UserProfil(
-                login=result.login,
-                first_name=result.first_name,
-                last_name=result.last_name,
-                name_role=f"{role.lvl}:{role.name_role}",
-                email=result.email
-            )
-            return profil
-        return result
+        user_obj: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
+        if isinstance(user_obj, User):
+            user_profil = await self.get_user_profil(user_obj)
+            return user_profil
+        return user_obj
+    
+    async def change_profile_user(self, user_agent: str, new_data: ChangeProfil):
+        '''
+        Метод для изменения информации о пользователе
+        '''
+
+        user_data = await self.manager_auth.get_info_from_access_token(user_agent)
+        user_id = user_data.get("sub")
+        user_obj: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
+        if isinstance(user_obj, User):
+            if new_data.login:
+                user_obj.login = new_data.login
+            if new_data.first_name:
+                user_obj.first_name = new_data.first_name
+            if new_data.last_name:
+                user_obj.last_name = new_data.last_name
+            if new_data.email:
+                user_obj.email = new_data.email
+            await self.manager_auth.session.commit()
+            user_profil = await self.get_user_profil(user_obj)
+            return user_profil
+        return user_obj
+
+
+    async def get_user_profil(self, user_obj: User) -> UserProfil:
+        role: Role = await self.manager_role.get_role(str(user_obj.role_id))
+        profil = UserProfil(
+            login=user_obj.login,
+            first_name=user_obj.first_name,
+            last_name=user_obj.last_name,
+            name_role=f"{role.lvl}:{role.name_role}",
+            email=user_obj.email
+        )
+        return profil
+
+
