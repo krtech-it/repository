@@ -9,6 +9,13 @@ class UserCreate(BaseModel):
     last_name: str
     email: str
 
+class UserProfil(BaseModel):
+    login: str
+    first_name: str
+    last_name: str
+    name_role: str
+    email: str
+
 
 class UserLogin(BaseModel):
     login: str

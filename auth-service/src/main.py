@@ -9,7 +9,7 @@ from core.config import app_settings
 from db import redis
 from db.postgres import create_database
 
-from api.v1 import auth
+from api.v1 import auth, personal_acc
 
 
 app = FastAPI(
@@ -40,6 +40,7 @@ async def startup():
     await create_database()
 
 app.include_router(auth.router, prefix='/api/v1/auth', tags=['login'])
+app.include_router(personal_acc.router, prefix='/api/v1/profil', tags=['personal_acc'])
 
 if __name__ == '__main__':
     uvicorn.run(

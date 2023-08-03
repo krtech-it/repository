@@ -1,6 +1,6 @@
 from fastapi import Request
 
-from schemas.entity import UserCreate, UserLogin
+from schemas.entity import UserCreate, UserLogin, UserProfil
 from models.entity import User, Role
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
@@ -40,12 +40,12 @@ class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
 
 
     async def log_in(self, data: UserLogin, user_agent: str) -> None | ErrorName:
-        user = await self.get_obj_by_attr_name(User, 'login', data.login)
+        user: User = await self.get_obj_by_attr_name(User, 'login', data.login)
         if user is None:
             return ErrorName.DoesNotExist
         if not user.check_password(data.password):
             return ErrorName.InvalidPassword
-        _, refresh_token = await self.create_tokens(sub=user.id, user_claims={
+        _, refresh_token = await self.create_tokens(sub=str(user.id), user_claims={
             'user_agent': user_agent,
             'is_admin': user.is_admin
             })
@@ -105,7 +105,21 @@ class UserManage:
 
 
     async def get_user_data(self, user_agent: str):
+        '''
+        Метод для получения информации о пользователе.
+        '''
+
         user_data = await self.manager_auth.get_info_from_access_token(user_agent)
         user_id = user_data.get("sub")
-        user_obj = await self.get_obj_by_attr_name(User, "id", user_id)
-        return user_obj.__dict__()
+        result: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
+        if isinstance(result, User):
+            role: Role = await self.manager_role.get_role(str(result.role_id))
+            profil = UserProfil(
+                login=result.login,
+                first_name=result.first_name,
+                last_name=result.last_name,
+                name_role=f"{role.lvl}:{role.name_role}",
+                email=result.email
+            )
+            return profil
+        return result
