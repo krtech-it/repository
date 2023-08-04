@@ -20,7 +20,7 @@ async def profil_user(
     Метод возвращает информацию о пользователе.
     '''
 
-    user_profil = await user_manager.get_user_data(user_agent)
+    user_profil = await user_manager.get_user_data(user_agent) #user_profile
     match user_profil:
         case ErrorName.InvalidAccessToken:
             raise HTTPException(status_code=422, detail='Signature has expired')

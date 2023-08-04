@@ -115,7 +115,7 @@ class UserManage:
         if isinstance(user_obj, User):
             user_profil = await self.get_user_profil(user_obj)
             return user_profil
-        return user_obj
+        return user_obj #можно убрать этот return потому что функция все равно вернет None если не выполнится условие
     
     async def change_profile_user(self, user_agent: str, new_data: ChangeProfil):
         '''
@@ -125,6 +125,7 @@ class UserManage:
         user_data = await self.manager_auth.get_info_from_access_token(user_agent)
         user_id = user_data.get("sub")
         user_obj: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
+        #нужна обработка ошибок для обновления БД
         if isinstance(user_obj, User):
             if new_data.login:
                 user_obj.login = new_data.login
@@ -137,7 +138,7 @@ class UserManage:
             await self.manager_auth.session.commit()
             user_profil = await self.get_user_profil(user_obj)
             return user_profil
-        return user_obj
+        return user_obj #можно убрать этот return потому что функция все равно вернет None если не выполнится условие
 
 
     async def get_user_profil(self, user_obj: User) -> UserProfil:
