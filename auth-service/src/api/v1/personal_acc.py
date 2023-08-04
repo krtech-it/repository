@@ -1,11 +1,9 @@
 from services.user import UserManage
 
-from fastapi import APIRouter, Depends, HTTPException, Header, Request, Cookie
+from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import Annotated
-from depends import get_repository_user, get_repository_role, get_user_manage
-from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword
-from services.user import BaseUser
-from services.role import BaseRole
+from depends import get_user_manage
+from schemas.entity import UserProfil, ChangeProfil, ChangePassword
 from core.config import ErrorName
 
 
@@ -44,6 +42,10 @@ async def profil_user(
             raise HTTPException(status_code=422, detail='Signature has expired')
         case ErrorName.UnsafeEntry:
             raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
+        case ErrorName.LoginAlreadyExists:
+            raise HTTPException(status_code=400, detail='Пользователь с таким login уже существует')
+        case ErrorName.EmailAlreadyExists:
+            raise HTTPException(status_code=400, detail='Пользователь с таким email уже существует')
     return user_profil
 
 

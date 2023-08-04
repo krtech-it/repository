@@ -1,6 +1,5 @@
 from typing import Any, Sequence
 
-from sqlalchemy.engine.result import _TP
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, Select, Result, Row
 from db.postgres import Base

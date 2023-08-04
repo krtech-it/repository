@@ -1,6 +1,6 @@
 from fastapi import Request
 from pydantic import BaseModel
-from sqlalchemy.orm.decl_api import DeclarativeMeta
+# from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 
 from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword
@@ -198,15 +198,28 @@ class UserManage:
         if not isinstance(user_obj, User):
             return user_obj
         #нужна обработка ошибок для обновления БД
-        if new_data.login:
-            user_obj.login = new_data.login
+        data_check = dict()
         if new_data.first_name:
             user_obj.first_name = new_data.first_name
         if new_data.last_name:
             user_obj.last_name = new_data.last_name
+
+        if new_data.email:
+            data_check["email"] = new_data.email
+        if new_data.login:
+            data_check["login"] = new_data.login
+
+        res_err = await self.search_for_duplicates(data_check)
+        if isinstance(res_err, ErrorName):
+            return res_err
+        
         if new_data.email:
             user_obj.email = new_data.email
+        if new_data.login:
+            user_obj.login = new_data.login
+
         await self.manager_auth.session.commit()
+
         user_profil = await self.get_user_profil(user_obj)
         return user_profil
 
@@ -226,7 +239,23 @@ class UserManage:
         if not isinstance(user_data, dict):
             return user_data
         user_id = user_data.get("sub")
-        user_obj: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
+        user_obj: User = await self.manager_auth.get_obj_by_pk(User, user_id)
         return user_obj
+
+    async def search_for_duplicates(self, data: dict) -> str | None:
+        fields = [FieldFilter(attr_name=key, attr_value=item) for key, item in data.items()]
+        data_filter = [
+            {
+                'model': User,
+                'fields': fields
+            },
+        ]
+        users = await self.manager_auth.get_list_obj_by_list_attr_name_operator_or(data_filter)
+        for user in users.iterator:
+            if user.login == data.get("login"):
+                return ErrorName.LoginAlreadyExists
+            if user.email == data.get("email"):
+                user.email = "123445566"
+                return ErrorName.EmailAlreadyExists
 
 
