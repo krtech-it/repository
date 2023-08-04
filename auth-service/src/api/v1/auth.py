@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Request, Cookie
 from typing import Annotated
 from depends import get_repository_user, get_repository_role
 from schemas.entity import UserCreate, UserLogin
-from services.user import BaseUser
+from services.user import BaseAuth
 from services.role import BaseRole
 from core.config import ErrorName
 
@@ -12,7 +12,7 @@ router = APIRouter()
 @router.post('/login/')
 async def login(
         data: UserLogin, user_agent: Annotated[str | None, Header()] = None,
-        user_manager: BaseUser = Depends(get_repository_user)
+        user_manager: BaseAuth = Depends(get_repository_user)
 ):
     user = await user_manager.log_in(data, user_agent)
     match user:
@@ -23,8 +23,7 @@ async def login(
 
 
 @router.post('/sign_up/')
-async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_repository_user),
-        role_manager: BaseRole = Depends(get_repository_role)):
+async def sign_up(data: UserCreate, user_manager: BaseAuth = Depends(get_repository_user)):
     status = await user_manager.sign_up(data)
     match status:
         case ErrorName.LoginAlreadyExists:
@@ -38,7 +37,7 @@ async def sign_up(data: UserCreate, user_manager: BaseUser = Depends(get_reposit
 @router.get('/get_user/')
 async def get_user(
         user_agent: Annotated[str | None, Header()] = None,
-        user_manager: BaseUser = Depends(get_repository_user)
+        user_manager: BaseAuth = Depends(get_repository_user)
 ):
     result = await user_manager.get_info_from_access_token(user_agent)
     match result:
@@ -52,7 +51,7 @@ async def get_user(
 @router.post('/refresh/')
 async def refresh(
         request: Request, user_agent: Annotated[str | None, Header()] = None,
-        user_manager: BaseUser = Depends(get_repository_user),
+        user_manager: BaseAuth = Depends(get_repository_user),
 ):
     result = await user_manager.refresh_token(user_agent, request)
     match result:
@@ -66,5 +65,5 @@ async def refresh(
 
 
 @router.get('/logout/')
-async def logout(request: Request, user_manager: BaseUser = Depends(get_repository_user)):
+async def logout(request: Request, user_manager: BaseAuth = Depends(get_repository_user)):
     await user_manager.logout(request)
