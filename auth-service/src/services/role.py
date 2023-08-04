@@ -8,6 +8,8 @@ from services.redis_cache import CacheRedis
 from core.config import app_settings, ErrorName
 from time import time
 
+import uuid
+
 
 class BaseRole(BaseRepository):
 
@@ -22,3 +24,12 @@ class BaseRole(BaseRepository):
             "max_year": 1980
         }
         await self.create_obj(Role, null_role)
+
+
+    async def get_role(self, id: uuid.UUID):
+        '''
+        Метод для получения имени роли по id
+        '''
+
+        role = await self.get_obj_by_attr_name(Role, "id", id)
+        return role

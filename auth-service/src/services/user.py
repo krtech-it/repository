@@ -2,15 +2,16 @@ from fastapi import Request
 from pydantic import BaseModel
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
-from schemas.entity import UserCreate, UserLogin
-from models.entity import User, Role, Base
+
+from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword
+from models.entity import User, Role
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
 from services.redis_cache import CacheRedis
 from services.role import BaseRole
 from core.config import app_settings, ErrorName
 from time import time
-
+from werkzeug.security import generate_password_hash
 
 class FieldFilter(BaseModel):
     attr_name: str
@@ -79,7 +80,7 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
             return ErrorName.DoesNotExist
         if not user.check_password(data.password):
             return ErrorName.InvalidPassword
-        _, refresh_token = await self.create_tokens(sub=user.id, user_claims={
+        _, refresh_token = await self.create_tokens(sub=str(user.id), user_claims={
             'user_agent': user_agent,
             'is_admin': user.is_admin
             })
@@ -163,9 +164,69 @@ class UserManage:
         self.manager_auth = manager_auth
         self.manager_role = manager_role
 
+    async def change_password(self, user_agent: str, new_data: ChangePassword):
+        '''
+        Метод для изменения пароля пользователя
+        '''
+
+        user_obj: User | ErrorName = await self.get_user_obj(user_agent)
+        if not isinstance(user_obj, User):
+            return user_obj
+        if not user_obj.check_password(new_data.old_password):
+            return ErrorName.InvalidPassword
+        user_obj.password = generate_password_hash(new_data.new_password)
+        await self.manager_auth.session.commit()
+
 
     async def get_user_data(self, user_agent: str):
+        '''
+        Метод для получения информации о пользователе.
+        '''
+
+        user_obj: User | ErrorName = await self.get_user_obj(user_agent)
+        if not isinstance(user_obj, User):
+            return user_obj
+        user_profil = await self.get_user_profil(user_obj)
+        return user_profil
+    
+    async def change_profile_user(self, user_agent: str, new_data: ChangeProfil):
+        '''
+        Метод для изменения информации о пользователе
+        '''
+
+        user_obj: User | ErrorName = await self.get_user_obj(user_agent)
+        if not isinstance(user_obj, User):
+            return user_obj
+        #нужна обработка ошибок для обновления БД
+        if new_data.login:
+            user_obj.login = new_data.login
+        if new_data.first_name:
+            user_obj.first_name = new_data.first_name
+        if new_data.last_name:
+            user_obj.last_name = new_data.last_name
+        if new_data.email:
+            user_obj.email = new_data.email
+        await self.manager_auth.session.commit()
+        user_profil = await self.get_user_profil(user_obj)
+        return user_profil
+
+    async def get_user_profil(self, user_obj: User) -> UserProfil:
+        role: Role = await self.manager_role.get_role(str(user_obj.role_id))
+        profil = UserProfil(
+            login=user_obj.login,
+            first_name=user_obj.first_name,
+            last_name=user_obj.last_name,
+            name_role=f"{role.lvl}:{role.name_role}",
+            email=user_obj.email
+        )
+        return profil
+    
+    async def get_user_obj(self, user_agent: str):
         user_data = await self.manager_auth.get_info_from_access_token(user_agent)
+        if not isinstance(user_data, dict):
+            return user_data
         user_id = user_data.get("sub")
-        user_obj = await self.get_obj_by_attr_name(User, "id", user_id)
-        return user_obj.__dict__()
+        user_obj: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
+        return user_obj
+
+
