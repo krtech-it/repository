@@ -1,6 +1,6 @@
 from fastapi import Request
 
-from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil
+from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword
 from models.entity import User, Role
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
@@ -8,7 +8,7 @@ from services.redis_cache import CacheRedis
 from services.role import BaseRole
 from core.config import app_settings, ErrorName
 from time import time
-
+from werkzeug.security import generate_password_hash
 
 class BaseUser(BaseRepository, BaseAuthJWT, CacheRedis):
 
@@ -103,28 +103,32 @@ class UserManage:
         self.manager_auth = manager_auth
         self.manager_role = manager_role
 
+    async def change_password(self, user_agent: str, new_data: ChangePassword):
+        user_obj: User = await self.get_user_obj(user_agent)
+        if isinstance(user_obj, User):
+            # hash_old = generate_password_hash(new_data.old_password)
+            if not user_obj.check_password(new_data.old_password):
+                return ErrorName.InvalidPassword
+            user_obj.password = generate_password_hash(new_data.new_password)
+            await self.manager_auth.session.commit()
+
 
     async def get_user_data(self, user_agent: str):
         '''
         Метод для получения информации о пользователе.
         '''
 
-        user_data = await self.manager_auth.get_info_from_access_token(user_agent)
-        user_id = user_data.get("sub")
-        user_obj: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
+        user_obj: User = await self.get_user_obj(user_agent)
         if isinstance(user_obj, User):
             user_profil = await self.get_user_profil(user_obj)
             return user_profil
-        return user_obj #можно убрать этот return потому что функция все равно вернет None если не выполнится условие
     
     async def change_profile_user(self, user_agent: str, new_data: ChangeProfil):
         '''
         Метод для изменения информации о пользователе
         '''
 
-        user_data = await self.manager_auth.get_info_from_access_token(user_agent)
-        user_id = user_data.get("sub")
-        user_obj: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
+        user_obj: User = await self.get_user_obj(user_agent)
         #нужна обработка ошибок для обновления БД
         if isinstance(user_obj, User):
             if new_data.login:
@@ -138,8 +142,6 @@ class UserManage:
             await self.manager_auth.session.commit()
             user_profil = await self.get_user_profil(user_obj)
             return user_profil
-        return user_obj #можно убрать этот return потому что функция все равно вернет None если не выполнится условие
-
 
     async def get_user_profil(self, user_obj: User) -> UserProfil:
         role: Role = await self.manager_role.get_role(str(user_obj.role_id))
@@ -151,5 +153,11 @@ class UserManage:
             email=user_obj.email
         )
         return profil
+    
+    async def get_user_obj(self, user_agent: str):
+        user_data = await self.manager_auth.get_info_from_access_token(user_agent)
+        user_id = user_data.get("sub")
+        user_obj: User = await self.manager_auth.get_obj_by_attr_name(User, "id", user_id)
+        return user_obj
 
 

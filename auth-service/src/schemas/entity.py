@@ -2,6 +2,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
+
 class UserCreate(BaseModel):
     login: str
     password: str = Field(min_length=8)
@@ -22,10 +23,13 @@ class ChangeProfil(BaseModel):
     last_name: str | None = None
     email: str | None = None
 
+class ChangePassword(BaseModel):
+    old_password: str
+    new_password: str = Field(min_length=8)
+
 class UserLogin(BaseModel):
     login: str
     password: str
-
 
 class UserInDB(BaseModel):
     id: UUID
