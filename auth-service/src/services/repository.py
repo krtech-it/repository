@@ -24,9 +24,9 @@ class BaseRepository:
         obj = obj.scalar()
         return obj
 
-    async def _get_list_obj(self, query: Select) -> Sequence[Row[_TP]]:
+    async def _get_list_obj(self, query: Select) -> Result[Any]:
         list_obj = await self.session.execute(query)
-        return list_obj.all()
+        return list_obj
 
     @classmethod
     async def _create_data_filter(cls, data_filter: dict) -> tuple:
@@ -74,7 +74,7 @@ class BaseRepository:
         query = select(model).filter(getattr(model, attr_name) == attr_value)
         return await self._get_obj(query)
 
-    async def get_list_obj_by_list_attr_name_operator_or(self, data_filter: dict) -> Sequence[Row[_TP]]:
+    async def get_list_obj_by_list_attr_name_operator_or(self, data_filter: dict) -> Result[Any]:
         """
          Получает список объектов из базы данных, используя оператор OR для фильтрации.
 
@@ -119,5 +119,5 @@ class BaseRepository:
         query = select(User, Role).join(Role, User.role_id == Role.id).filter(User.login == 'admin')
         x = await self._get_list_obj(query)
         print(x)
-        for i in x:
+        for i in x.iterator:
             print([type(j) for j in i])
