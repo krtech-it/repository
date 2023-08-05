@@ -4,14 +4,16 @@ from pydantic import BaseModel
 
 
 from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword
-from models.entity import User, Role
+from models.entity import User, Role, EventEnum
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
+from services.history import BaseHistory
 from services.redis_cache import CacheRedis
 from services.role import BaseRole
 from core.config import app_settings, ErrorName
 from time import time
 from werkzeug.security import generate_password_hash
+
 
 class FieldFilter(BaseModel):
     attr_name: str
@@ -19,6 +21,10 @@ class FieldFilter(BaseModel):
 
 
 class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
+
+    def __init__(self, manager_history: BaseHistory, *args, **kwargs):
+        self.manager_history = manager_history
+        super().__init__(*args, **kwargs)
 
     async def sign_up(self, data: UserCreate) -> str | ErrorName:
         """
@@ -76,6 +82,7 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
                                 или неверный пароль).
         """
         user = await self.get_obj_by_attr_name(User, 'login', data.login)
+        result = False
         if user is None:
             return ErrorName.DoesNotExist
         if not user.check_password(data.password):
@@ -84,7 +91,12 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
             'user_agent': user_agent,
             'is_admin': user.is_admin
             })
-
+        self.manager_history.write_entry_history(
+            user_id=user.id,
+            user_agent=user_agent,
+            event_type=EventEnum.login,
+            result=result
+        )
         await self._put_object_to_cache(obj=refresh_token, time_cache=app_settings.authjwt_time_refresh)
 
     async def get_info_from_access_token(self, user_agent: str) -> dict | ErrorName:
@@ -160,9 +172,10 @@ class UserManage:
     Класс для управления личным кабинетом пользователя
     '''
 
-    def __init__(self, manager_auth: BaseAuth, manager_role: BaseRole):
+    def __init__(self, manager_auth: BaseAuth, manager_role: BaseRole, manager_history: BaseHistory):
         self.manager_auth = manager_auth
         self.manager_role = manager_role
+        self.manager_history = manager_history
 
     async def change_password(self, user_agent: str, new_data: ChangePassword):
         '''
