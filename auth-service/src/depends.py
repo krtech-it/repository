@@ -4,17 +4,25 @@ from fastapi import Depends
 
 from services.user import BaseAuth, UserManage
 from services.role import BaseRole
+from services.history import BaseHistory 
 from services.admin import BaseAdmin
 from db.postgres import get_session
 from db.redis import get_redis, Redis
 
 
+def get_manager_history(
+    session: AsyncSession = Depends(get_session)
+):
+    return BaseHistory(session=session)
+
+
 def get_repository_user(
         session: AsyncSession = Depends(get_session),
         authorize: AuthJWT = Depends(),
-        redis: Redis = Depends(get_redis)
+        redis: Redis = Depends(get_redis),
+        manager_history: BaseHistory = Depends(get_manager_history)
 ):
-    return BaseAuth(session=session, auth=authorize, redis=redis)
+    return BaseAuth(session=session, auth=authorize, redis=redis, manager_history=manager_history)
 
 
 def get_repository_role(

@@ -72,9 +72,8 @@ class History(Base):
     event_type = Column(Enum(EventEnum))
     result = Column(Boolean, nullable=False)
 
-    def __init__(self, user_id: UUID, time: datetime, browser: str, event_type: enum, result: bool) -> None:
+    def __init__(self, user_id: UUID, browser: str, event_type: enum, result: bool) -> None:
         self.user_id = user_id
-        self.time = time
         self.browser = browser
         self.event_type = event_type
         self.result = result

@@ -65,5 +65,6 @@ async def refresh(
 
 
 @router.get('/logout/')
-async def logout(request: Request, user_manager: BaseAuth = Depends(get_repository_user)):
-    await user_manager.logout(request)
+async def logout(request: Request, user_agent: Annotated[str | None,
+        Header()] = None, user_manager: BaseAuth = Depends(get_repository_user)):
+    await user_manager.logout(request, user_agent)

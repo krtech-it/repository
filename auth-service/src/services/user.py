@@ -83,21 +83,27 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
         """
         user = await self.get_obj_by_attr_name(User, 'login', data.login)
         result = False
+        error = None
         if user is None:
-            return ErrorName.DoesNotExist
+            # return ErrorName.DoesNotExist
+            error = ErrorName.DoesNotExist
         if not user.check_password(data.password):
-            return ErrorName.InvalidPassword
-        _, refresh_token = await self.create_tokens(sub=str(user.id), user_claims={
-            'user_agent': user_agent,
-            'is_admin': user.is_admin
-            })
-        self.manager_history.write_entry_history(
+            # return ErrorName.InvalidPassword
+            error = ErrorName.InvalidPassword
+        if not error:
+            _, refresh_token = await self.create_tokens(sub=str(user.id), user_claims={
+                'user_agent': user_agent,
+                'is_admin': user.is_admin
+                })
+            await self._put_object_to_cache(obj=refresh_token, time_cache=app_settings.authjwt_time_refresh)
+            result = True
+        await self.manager_history.write_entry_history(
             user_id=user.id,
             user_agent=user_agent,
             event_type=EventEnum.login,
             result=result
         )
-        await self._put_object_to_cache(obj=refresh_token, time_cache=app_settings.authjwt_time_refresh)
+        return error
 
     async def get_info_from_access_token(self, user_agent: str) -> dict | ErrorName:
         """
@@ -137,20 +143,32 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
         await self._delete_object_from_cache(obj=refresh_token)
         uuid_access = request.cookies.get(app_settings.authjwt_access_cookie_key).split('.')[-1]
         data = await self.check_refresh_token()
+        result = False
+        error = None
         if data.get('uuid_access', '') != uuid_access:
-            return ErrorName.InvalidAccessRefreshTokens
+            error = ErrorName.InvalidAccessRefreshTokens
         elif data.get('user_agent', '') != user_agent:
-            return ErrorName.UnsafeEntry
-        _, refresh_token = await self.create_tokens(
-            sub=data.get('sub'),
-            user_claims={
-                'user_agent': user_agent,
-                'is_admin': data.get('is_admin')
-                })
-        await self._put_object_to_cache(refresh_token, app_settings.authjwt_time_refresh)
+            error = ErrorName.UnsafeEntry
+        if not error:
+            _, refresh_token = await self.create_tokens(
+                sub=data.get('sub'),
+                user_claims={
+                    'user_agent': user_agent,
+                    'is_admin': data.get('is_admin')
+                    })
+            await self._put_object_to_cache(refresh_token, app_settings.authjwt_time_refresh)
+            result = True
+        await self.manager_history.write_entry_history(
+            user_id=data.get('sub'),
+            user_agent=user_agent,
+            event_type=EventEnum.refresh,
+            result=result
+        )
+        return error
+        
 
-    async def logout(self, request: Request) -> None:
-        """
+    async def logout(self, request: Request, user_agent: str) -> None:
+        """string
         Осуществляет выход пользователя из системы (logout).
 
         :param request: (Request) Объект запроса, содержащий cookies с данными о пользователе.
@@ -165,6 +183,13 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
         await self._delete_object_from_cache(obj=refresh_token)
 
         await self.jwt_logout()
+
+        await self.manager_history.write_entry_history(
+            user_id=user_data.get('sub'),
+            user_agent=user_agent,
+            event_type=EventEnum.logout,
+            result=True
+        )
 
 
 class UserManage:
