@@ -204,9 +204,9 @@ class UserManage:
         if new_data.last_name:
             user_obj.last_name = new_data.last_name
 
-        if new_data.email:
+        if new_data.email and new_data.login != user_obj.login:
             data_check["email"] = new_data.email
-        if new_data.login:
+        if new_data.login and new_data.email != user_obj.email:
             data_check["login"] = new_data.login
 
         res_err = await self.search_for_duplicates(data_check)
@@ -255,7 +255,6 @@ class UserManage:
             if user.login == data.get("login"):
                 return ErrorName.LoginAlreadyExists
             if user.email == data.get("email"):
-                user.email = "123445566"
                 return ErrorName.EmailAlreadyExists
 
 
