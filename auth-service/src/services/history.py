@@ -5,7 +5,7 @@ from pydantic import BaseModel
 # from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 
-from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword
+from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword, FieldFilter, HistoryUser
 from models.entity import History as HistoryDB
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
@@ -28,5 +28,16 @@ class BaseHistory(BaseRepository):
             }
         )
 
-    def read_history(self):
-        pass
+    async def get_history(self, user_id: uuid.UUID):
+        filter = {"user_id": user_id}
+        data_filter = [
+            {
+                'model': HistoryDB,
+                'fields': [
+                    FieldFilter(attr_name='user_id', attr_value=str(user_id))
+                ]
+            },
+        ]
+        list_obj = await self.get_list_obj_by_list_attr_name_operator_or(data_filter)    
+        result = [HistoryUser.parse_obj(obj.__dict__) for obj in list_obj.iterator]
+        return result
