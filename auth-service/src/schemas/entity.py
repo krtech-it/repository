@@ -1,7 +1,20 @@
 from uuid import UUID
+from datetime import datetime
 from pydantic import BaseModel, Field
 # import re
 
+
+class FieldFilter(BaseModel):
+    attr_name: str
+    attr_value: int | str
+
+
+class HistoryUser(BaseModel):
+    id: UUID
+    time: datetime
+    browser: str
+    user_id: UUID
+    result: bool
 
 
 class UserCreate(BaseModel):

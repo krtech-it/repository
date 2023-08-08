@@ -73,7 +73,7 @@ class BaseRepository:
         query = select(model).filter(getattr(model, attr_name) == attr_value)
         return await self._get_obj(query)
 
-    async def get_list_obj_by_list_attr_name_operator_or(self, data_filter: dict) -> Result[Any]:
+    async def get_list_obj_by_list_attr_name_operator_or(self, data_filter: list[dict]) -> Result[Any]:
         """
          Получает список объектов из базы данных, используя оператор OR для фильтрации.
 

@@ -40,6 +40,7 @@ def get_admin(
 
 def get_user_manage(
         manager_auth: BaseAuth = Depends(get_repository_user),
-        manager_role: BaseRole = Depends(get_repository_role)
+        manager_role: BaseRole = Depends(get_repository_role),
+        manager_history: BaseHistory = Depends(get_manager_history)
 ):
-    return UserManage(manager_auth=manager_auth, manager_role=manager_role)
+    return UserManage(manager_auth=manager_auth, manager_role=manager_role, manager_history=manager_history)

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 # from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 
-from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword
+from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword, FieldFilter
 from models.entity import User, Role, EventEnum
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
@@ -13,11 +13,6 @@ from services.role import BaseRole
 from core.config import app_settings, ErrorName
 from time import time
 from werkzeug.security import generate_password_hash
-
-
-class FieldFilter(BaseModel):
-    attr_name: str
-    attr_value: int | str
 
 
 class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
@@ -202,6 +197,18 @@ class UserManage:
         self.manager_role = manager_role
         self.manager_history = manager_history
 
+    async def get_history(self, user_agent: str):
+        '''
+        Метод для получения истории
+        '''
+
+        user_obj: User | ErrorName = await self.get_user_obj(user_agent)
+        if not isinstance(user_obj, User):
+            return user_obj
+        result = await self.manager_history.get_history(user_obj.id)
+        return result
+
+
     async def change_password(self, user_agent: str, new_data: ChangePassword):
         '''
         Метод для изменения пароля пользователя
@@ -294,5 +301,3 @@ class UserManage:
                 return ErrorName.LoginAlreadyExists
             if user.email == data.get("email"):
                 return ErrorName.EmailAlreadyExists
-
-

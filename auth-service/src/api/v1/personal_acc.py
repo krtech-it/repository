@@ -3,7 +3,8 @@ from services.user import UserManage
 from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import Annotated
 from depends import get_user_manage
-from schemas.entity import UserProfil, ChangeProfil, ChangePassword
+from schemas.entity import UserProfil, ChangeProfil, ChangePassword, HistoryUser
+from models.entity import History
 from core.config import ErrorName
 
 
@@ -67,3 +68,20 @@ async def profil_user(
         case ErrorName.InvalidPassword:
             raise HTTPException(status_code=400, detail='Неверный пароль')
     return "password changed"
+
+
+@router.get('/get_history/')
+async def get_history(
+    user_agent: Annotated[str | None, Header()] = None,
+    user_manager: UserManage = Depends(get_user_manage)) -> list[HistoryUser]:
+    '''
+    Метод возвращает информацию о пользователе.
+    '''
+
+    user_history: UserProfil = await user_manager.get_history(user_agent) #user_profile
+    match user_history:
+        case ErrorName.InvalidAccessToken:
+            raise HTTPException(status_code=422, detail='Signature has expired')
+        case ErrorName.UnsafeEntry:
+            raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
+    return user_history
