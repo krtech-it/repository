@@ -49,8 +49,8 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
 
         role = await self.get_first_obj_order_by_attr_name(Role, 'lvl')
         if role is None:
-            role_manager = BaseRole(self.session)
-            await role_manager.create_default_role()
+            # role_manager = BaseRole(self.session)
+            # await role_manager.create_default_role()
             role = await self.get_first_obj_order_by_attr_name(Role, 'lvl')
 
         await self.create_obj(
@@ -208,7 +208,22 @@ class UserManage:
         result = await self.manager_history.get_history(user_obj.id)
         return result
 
-
+    async def change_level(self, user_agent: str, level_up=True):
+        user_obj: User | ErrorName = await self.get_user_obj(user_agent)
+        if not isinstance(user_obj, User):
+            return user_obj
+        role_id = user_obj.role_id
+        role_obj = await self.manager_role.get_role(role_id)
+        if level_up:
+            role_lvl_higher = role_obj.lvl + 1
+        else:
+            role_lvl_higher = role_obj.lvl - 1
+        role_obj_higher = await self.manager_auth.get_obj_by_attr_name(Role, 'lvl', role_lvl_higher)
+        if role_obj_higher:
+            user_obj.role_id = role_obj_higher.id
+            await self.manager_auth.session.commit()
+        else:
+            return ErrorName.RoleDoesNotExist
     async def change_password(self, user_agent: str, new_data: ChangePassword):
         '''
         Метод для изменения пароля пользователя
@@ -221,7 +236,6 @@ class UserManage:
             return ErrorName.InvalidPassword
         user_obj.password = generate_password_hash(new_data.new_password)
         await self.manager_auth.session.commit()
-
 
     async def get_user_data(self, user_agent: str):
         '''
