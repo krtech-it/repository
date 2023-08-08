@@ -51,6 +51,8 @@ class ErrorName(Enum):
     InvalidAccessRefreshTokens = "InvalidAccessRefreshTokens"
     InvalidRefreshToken = "InvalidRefreshToken"
     DefaultRoleDoesNotExists = "DefaultRoleDoesNotExists"
+    RoleAlreadyExists = "RoleAlreadyExists"
+    RoleDoesNotExist = "RoleDoesNotExist"
 
 
 app_settings = Settings()

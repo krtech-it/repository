@@ -3,7 +3,7 @@ from services.user import UserManage
 from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import Annotated
 from depends import get_user_manage
-from schemas.entity import UserProfil, ChangeProfil, ChangePassword, HistoryUser
+from schemas.entity import UserProfil, ChangeProfil, ChangePassword, HistoryUser, ChangeLevel
 from models.entity import History
 from core.config import ErrorName
 
@@ -85,3 +85,22 @@ async def get_history(
         case ErrorName.UnsafeEntry:
             raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
     return user_history
+
+
+@router.post('/change-level/')
+async def change_level(
+        self_data: ChangeLevel,
+        user_agent: Annotated[str | None, Header()] = None,
+        user_manager: UserManage = Depends(get_user_manage)) -> str | None:
+    '''
+    Метод для редактирования профиля пользователя.
+    '''
+    status = await user_manager.change_level(user_agent, self_data.level_up)
+    match status:
+        case ErrorName.InvalidAccessToken:
+            raise HTTPException(status_code=422, detail='Signature has expired')
+        case ErrorName.UnsafeEntry:
+            raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
+        case ErrorName.RoleDoesNotExist:
+            raise HTTPException(status_code=400, detail='Роли не существует')
+    return "level raised" if self_data.level_up else "decreased"

@@ -1,3 +1,4 @@
+import uuid
 from typing import Any, Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -113,6 +114,10 @@ class BaseRepository:
         )
         self.session.add(new_db_obj)
         await self.session.commit()
+
+    async def delete_obj(self, model: Base, id: uuid.UUID) -> None:
+        obj = await self.session.get(model, id)
+        await self.session.delete(obj)
 
     async def test_join(self):
         query = select(User, Role).join(Role, User.role_id == Role.id).filter(User.login == 'admin')

@@ -53,3 +53,19 @@ class UserInDB(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class RoleCreate(BaseModel):
+    lvl: int | None = None
+    name_role: str | None = None
+    description: str | None = None
+    max_year: int | None = None
+
+
+class UserRole(BaseModel):
+    user_id: UUID
+    role_id: UUID
+
+
+class ChangeLevel(BaseModel):
+    level_up: bool

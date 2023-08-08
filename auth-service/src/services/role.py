@@ -1,6 +1,6 @@
 from fastapi import Request
 
-from schemas.entity import UserCreate, UserLogin
+from schemas.entity import UserCreate, UserLogin, RoleCreate
 from models.entity import User, Role
 from services.repository import BaseRepository
 from services.auth_jwt import BaseAuthJWT
@@ -25,8 +25,7 @@ class BaseRole(BaseRepository):
         }
         await self.create_obj(Role, null_role)
 
-
-    async def get_role(self, id: uuid.UUID):
+    async def get_role(self, id: str) -> Role:
         '''
         Метод для получения имени роли по id
         '''
