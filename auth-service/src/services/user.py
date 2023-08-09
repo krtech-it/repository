@@ -80,10 +80,8 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
         result = False
         error = None
         if user is None:
-            # return ErrorName.DoesNotExist
-            error = ErrorName.DoesNotExist
-        if not user.check_password(data.password):
-            # return ErrorName.InvalidPassword
+            return ErrorName.DoesNotExist
+        elif not user.check_password(data.password):
             error = ErrorName.InvalidPassword
         if not error:
             _, refresh_token = await self.create_tokens(sub=str(user.id), user_claims={
