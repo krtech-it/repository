@@ -26,7 +26,7 @@ class BaseRepository:
 
     async def _get_list_obj(self, query: Select) -> Result[Any]:
         list_obj = await self.session.execute(query)
-        return list_obj
+        return list_obj.iterator
 
     @classmethod
     async def _create_data_filter(cls, data_filter: dict) -> tuple:

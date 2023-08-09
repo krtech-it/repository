@@ -39,5 +39,5 @@ class BaseHistory(BaseRepository):
             },
         ]
         list_obj = await self.get_list_obj_by_list_attr_name_operator_or(data_filter)    
-        result = [HistoryUser.parse_obj(obj.__dict__) for obj in list_obj.iterator]
+        result = [HistoryUser.parse_obj(obj.__dict__) for obj in list_obj]
         return result

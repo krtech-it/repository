@@ -41,7 +41,7 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
             },
         ]
         users = await self.get_list_obj_by_list_attr_name_operator_or(data_filter)
-        for user in users.iterator:
+        for user in users:
             if user.login == data.login:
                 return ErrorName.LoginAlreadyExists
             if user.email == data.email:
@@ -49,8 +49,8 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
 
         role = await self.get_first_obj_order_by_attr_name(Role, 'lvl')
         if role is None:
-            # role_manager = BaseRole(self.session)
-            # await role_manager.create_default_role()
+            role_manager = BaseRole(self.session)
+            await role_manager.create_default_role()
             role = await self.get_first_obj_order_by_attr_name(Role, 'lvl')
 
         await self.create_obj(
@@ -308,7 +308,7 @@ class UserManage:
             },
         ]
         users = await self.manager_auth.get_list_obj_by_list_attr_name_operator_or(data_filter)
-        for user in users.iterator:
+        for user in users:
             if user.login == data.get("login"):
                 return ErrorName.LoginAlreadyExists
             if user.email == data.get("email"):
