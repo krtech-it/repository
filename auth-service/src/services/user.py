@@ -138,10 +138,10 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
         data = await self.check_refresh_token()
         result = False
         error = None
-        if data.get('uuid_access', '') != uuid_access:
-            error = ErrorName.InvalidAccessRefreshTokens
-        elif data.get('user_agent', '') != user_agent:
+        if data.get('user_agent', '') != user_agent:
             error = ErrorName.UnsafeEntry
+        elif data.get('uuid_access', '') != uuid_access:
+            error = ErrorName.InvalidAccessRefreshTokens
         if not error:
             _, refresh_token = await self.create_tokens(
                 sub=data.get('sub'),
