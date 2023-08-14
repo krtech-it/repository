@@ -56,8 +56,8 @@
 - Вы воспользовались лучшими практиками описания конфигурации приложений из урока.
 
 после первого пуска проекта надо:
-1 применить миграции alembic upgrade 81e806227fb5
-2 создать дефолтную роль python3 cli.py create_default_role --name standart --level 0 --max_year 2000
-3 создать админа python3 cli.py create_superuser --login admin --password admin --first_name user_admin --last_name user_admin
+* 1 применить миграции alembic upgrade 81e806227fb5
+* 2 создать дефолтную роль python3 cli.py create_default_role --name standart --level 0 --max_year 2000
+* 3 создать админа python3 cli.py create_superuser --login admin --password admin --first_name user_admin --last_name user_admin
 
 
