@@ -198,6 +198,8 @@ class UserManage:
     async def get_history(self, user_agent: str):
         '''
         Метод для получения истории
+
+        :param user_agent: (str) Заголовок User-Agent для идентификации клиентского приложения.
         '''
 
         user_obj: User | ErrorName = await self.get_user_obj(user_agent)
@@ -207,6 +209,12 @@ class UserManage:
         return result
 
     async def change_level(self, user_agent: str, level_up=True):
+        '''
+        Метод для изменения уровня подписки пользователя
+
+        :param user_agent: (str) Заголовок User-Agent для идентификации клиентского приложения.
+        :param level_up: (bool) Параметр для понижения уровня подписки при False или для повышения при True.
+        '''
         user_obj: User | ErrorName = await self.get_user_obj(user_agent)
         if not isinstance(user_obj, User):
             return user_obj
@@ -222,9 +230,11 @@ class UserManage:
             await self.manager_auth.session.commit()
         else:
             return ErrorName.RoleDoesNotExist
+        
     async def change_password(self, user_agent: str, new_data: ChangePassword):
         '''
         Метод для изменения пароля пользователя
+        :param user_agent: (str) Заголовок User-Agent для идентификации клиентского приложения.
         '''
 
         user_obj: User | ErrorName = await self.get_user_obj(user_agent)
@@ -238,6 +248,7 @@ class UserManage:
     async def get_user_data(self, user_agent: str):
         '''
         Метод для получения информации о пользователе.
+        :param user_agent: (str) Заголовок User-Agent для идентификации клиентского приложения.
         '''
 
         user_obj: User | ErrorName = await self.get_user_obj(user_agent)
@@ -249,6 +260,7 @@ class UserManage:
     async def change_profile_user(self, user_agent: str, new_data: ChangeProfil):
         '''
         Метод для изменения информации о пользователе
+        :param user_agent: (str) Заголовок User-Agent для идентификации клиентского приложения.
         '''
 
         user_obj: User | ErrorName = await self.get_user_obj(user_agent)
