@@ -107,7 +107,7 @@ async def test_update(query_data, expected_answer, mock_get_role, role_id, ac: A
 
 
 @pytest.mark.parametrize(
-    'query_data, expected_answer, mock_get_role, role_id, mock_get_user, user_id',
+    'query_data, expected_answer, mock_get_role, mock_get_user',
     [
         (
                 role_user_dict,
