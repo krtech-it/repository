@@ -35,7 +35,7 @@ class ChangeProfil(BaseModel):
     login: str | None = None
     first_name: str | None = None
     last_name: str | None = None
-    email: str | None = Field(regex=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    email: str | None = Field(pattern=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
 
 class ChangePassword(BaseModel):
