@@ -11,6 +11,7 @@ from core.config import ErrorName
 router = APIRouter()
 
 
+
 @router.get('/self_data/')
 async def profil_user(
         user_agent: Annotated[str | None, Header()] = None,
@@ -26,7 +27,6 @@ async def profil_user(
         case ErrorName.UnsafeEntry:
             raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
     return user_profil
-
 
 @router.patch('/self_data/')
 async def profil_user(
