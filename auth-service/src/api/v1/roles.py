@@ -50,8 +50,8 @@ async def update_role(
     if result.get('is_admin'):
         status = await admin_manager.update_role(role_id=role_id, new_data=data)
         match status:
-            case ErrorName.RoleAlreadyExists:
-                raise HTTPException(status_code=400, detail='Такая роль уже существует')
+            case ErrorName.RoleDoesNotExist:
+                raise HTTPException(status_code=400, detail='Такой роли не существует')
         return status
 
 
@@ -73,6 +73,10 @@ async def assign_role(
         match status:
             case ErrorName.RoleDoesNotExist:
                 raise HTTPException(status_code=400, detail='Такой роли не существует')
+            case ErrorName.UserDoesNotExist:
+                raise HTTPException(status_code=400, detail='Такого пользователя не существует')
+            case ErrorName.DoesNotExist:
+                raise HTTPException(status_code=400, detail='Такого пользователя и такой роли не существует')
         return 'role assigned'
 
 

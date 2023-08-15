@@ -53,6 +53,7 @@ class ErrorName(Enum):
     DefaultRoleDoesNotExists = "DefaultRoleDoesNotExists"
     RoleAlreadyExists = "RoleAlreadyExists"
     RoleDoesNotExist = "RoleDoesNotExist"
+    UserDoesNotExist = "UserDoesNotExist"
 
 
 app_settings = Settings()
