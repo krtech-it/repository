@@ -18,7 +18,6 @@ class BaseAdmin(BaseRepository):
     def __init__(self, manager_auth, manager_role, *args, **kwargs):
         self.manager_auth = manager_auth
         self.manager_role = manager_role
-
         super().__init__(*args, **kwargs)
 
     async def create_role(self, data: RoleCreate):

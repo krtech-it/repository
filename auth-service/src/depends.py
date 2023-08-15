@@ -33,9 +33,10 @@ def get_repository_role(
 
 def get_admin(
         manager_auth: BaseAuth = Depends(get_repository_user),
-        manager_role: BaseRole = Depends(get_repository_role)
+        manager_role: BaseRole = Depends(get_repository_role),
+        session: AsyncSession = Depends(get_session)
 ):
-    return BaseAdmin(manager_auth=manager_auth, manager_role=manager_role)
+    return BaseAdmin(session=session, manager_auth=manager_auth, manager_role=manager_role)
 
 
 def get_user_manage(

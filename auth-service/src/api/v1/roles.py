@@ -60,7 +60,6 @@ async def assign_role(
         data: UserRole, user_agent: Annotated[str | None, Header()] = None,
         manager_auth: BaseAuth = Depends(get_repository_user),
         admin_manager: BaseAdmin = Depends(get_admin)
-
 ):
     result = await manager_auth.get_info_from_access_token(user_agent)
     match result:

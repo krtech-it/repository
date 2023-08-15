@@ -1,16 +1,10 @@
-import time
-
 import pytest
 from httpx import AsyncClient
 from http import HTTPStatus
-import itertools
-from async_fastapi_jwt_auth import AuthJWT
 
 from models.entity import User, Role
 from uuid import uuid4
 
-from schemas.entity import FieldFilter
-from services.auth_jwt import BaseAuthJWT
 
 START_URL = "/api/v1/admin/"
 
@@ -66,10 +60,14 @@ async def test_create(query_data, expected_answer, mock_get_role, ac: AsyncClien
     async def mock_return_null(*args, **kwargs):
         return None
 
+    async def mock_get_info_from_access_token(*args, **kwargs):
+        return {'is_admin': True}
+
+    monkeypatch.setattr('services.user.BaseAuth.get_info_from_access_token', mock_get_info_from_access_token)
     monkeypatch.setattr('services.user.BaseRepository.get_obj_by_attr_name', mock_get_obj_by_attr_name)
     monkeypatch.setattr('services.user.BaseRepository.create_obj', mock_return_null)
 
-    response = await ac.patch(START_URL + "create/", json=query_data)
+    response = await ac.patch(START_URL + "create/", headers={'User-Agent': 'google'}, json=query_data)
 
     assert response.status_code == expected_answer['status']
     assert response.json() == expected_answer['response_body']
@@ -96,9 +94,13 @@ async def test_update(query_data, expected_answer, mock_get_role, role_id, ac: A
     async def mock_get_obj_by_attr_name(*args, **kwargs):
         return mock_get_role
 
+    async def mock_get_info_from_access_token(*args, **kwargs):
+        return {'is_admin': True}
+
+    monkeypatch.setattr('services.user.BaseAuth.get_info_from_access_token', mock_get_info_from_access_token)
     monkeypatch.setattr('services.user.BaseRepository.get_obj_by_attr_name', mock_get_obj_by_attr_name)
 
-    response = await ac.patch(START_URL + f"update/{role_id}", json=query_data)
+    response = await ac.patch(START_URL + f"update/{role_id}", headers={'User-Agent': 'google'}, json=query_data)
 
     assert response.status_code == expected_answer['status']
     assert response.json() == expected_answer['response_body']
@@ -140,10 +142,14 @@ async def test_assign(query_data, expected_answer, mock_get_role, mock_get_user,
     async def mock_get_obj_by_pk(*args, ** kwargs):
         return mock_get_user
 
+    async def mock_get_info_from_access_token(*args, **kwargs):
+        return {'is_admin': True}
+
+    monkeypatch.setattr('services.user.BaseAuth.get_info_from_access_token', mock_get_info_from_access_token)
     monkeypatch.setattr('services.user.BaseRepository.get_obj_by_attr_name', mock_get_obj_by_attr_name)
     monkeypatch.setattr('services.user.BaseRepository.get_obj_by_pk', mock_get_obj_by_pk)
 
-    response = await ac.post(START_URL + "assign/", json=query_data)
+    response = await ac.post(START_URL + "assign/", headers={'User-Agent': 'google'}, json=query_data)
 
     assert response.status_code == expected_answer['status']
     assert response.json() == expected_answer['response_body']
