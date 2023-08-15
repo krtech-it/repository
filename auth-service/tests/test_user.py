@@ -59,7 +59,7 @@ async def test_get_user_data(role_data, user_data, expected_answer, ac: AsyncCli
         email=user_data.get("email")
     )
 
-    expected_answer["response_body"] = user_answer
+    expected_answer["response_body"] = user_answer.model_dump()
 
     monkeypatch.setattr('services.user.BaseAuth.get_info_from_access_token', mock_info_from_access_token)
     monkeypatch.setattr('services.repository.BaseRepository.get_obj_by_pk', mock_get_obj_by_pk)
@@ -155,7 +155,7 @@ async def test_change_profile_user(change_profil, role_data, user_data, expected
     )
 
     if duplicat_error is None:
-        expected_answer["response_body"] = user_answer
+        expected_answer["response_body"] = user_answer.model_dump()
 
     monkeypatch.setattr('services.user.BaseAuth.get_info_from_access_token', mock_info_from_access_token)
     monkeypatch.setattr('services.repository.BaseRepository.get_obj_by_pk', mock_get_obj_by_pk)
@@ -166,6 +166,7 @@ async def test_change_profile_user(change_profil, role_data, user_data, expected
 
     assert response.status_code == expected_answer['status']
     assert response.json() == expected_answer['response_body']
+
 
 @pytest.mark.parametrize(
     'change_password , user_data, expected_answer,',
