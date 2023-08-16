@@ -16,7 +16,7 @@ role_dict = {
     'max_year': 1900
 }
 role_with_certain_id = Role(**role_dict)
-role_id = uuid4()
+role_id = str(uuid4())
 role_with_certain_id.id = role_id
 
 user_dict = {
@@ -28,7 +28,7 @@ user_dict = {
     'email': 'test@mail.ru',
     'is_admin': False
 }
-user_id = uuid4()
+user_id = str(uuid4())
 user_with_certain_id = User(**user_dict)
 user_with_certain_id.id = user_id
 
@@ -44,16 +44,18 @@ role_user_dict = {
         (
                 role_dict,
                 {'status': HTTPStatus.OK, 'response_body': role_dict},
-                Role(**role_dict)
+                None
         ),
         (
                 role_dict,
                 {'status': HTTPStatus.BAD_REQUEST, 'response_body': {"detail": "Такая роль уже существует"}},
-                None
+                Role(**role_dict)
         )
     ]
 )
 async def test_create(query_data, expected_answer, mock_get_role, ac: AsyncClient, monkeypatch):
+    count = 0
+
     async def mock_get_obj_by_attr_name(*args, **kwargs):
         return mock_get_role
 
@@ -86,7 +88,7 @@ async def test_create(query_data, expected_answer, mock_get_role, ac: AsyncClien
                 role_dict,
                 {'status': HTTPStatus.BAD_REQUEST, 'response_body': {"detail": "Такой роли не существует"}},
                 None,
-                uuid4()
+                str(uuid4())
         )
     ]
 )
@@ -100,14 +102,14 @@ async def test_update(query_data, expected_answer, mock_get_role, role_id, ac: A
     monkeypatch.setattr('services.user.BaseAuth.get_info_from_access_token', mock_get_info_from_access_token)
     monkeypatch.setattr('services.user.BaseRepository.get_obj_by_attr_name', mock_get_obj_by_attr_name)
 
-    response = await ac.patch(START_URL + f"update/{role_id}", headers={'User-Agent': 'google'}, json=query_data)
+    response = await ac.patch(START_URL + f"update/{role_id}/", headers={'User-Agent': 'google'}, json=query_data)
 
     assert response.status_code == expected_answer['status']
     assert response.json() == expected_answer['response_body']
 
 
 @pytest.mark.parametrize(
-    'query_data, expected_answer, mock_get_role, role_id, mock_get_user, user_id',
+    'query_data, expected_answer, mock_get_role, mock_get_user',
     [
         (
                 role_user_dict,
