@@ -54,7 +54,6 @@ role_user_dict = {
     ]
 )
 async def test_create(query_data, expected_answer, mock_get_role, ac: AsyncClient, monkeypatch):
-    count = 0
 
     async def mock_get_obj_by_attr_name(*args, **kwargs):
         return mock_get_role

@@ -4,7 +4,7 @@ from fastapi import Depends
 
 from services.user import BaseAuth, UserManage
 from services.role import BaseRole
-from services.history import BaseHistory 
+from services.history import BaseHistory
 from services.admin import BaseAdmin
 from db.postgres import get_session
 from db.redis import get_redis, Redis

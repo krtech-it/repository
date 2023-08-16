@@ -1,6 +1,4 @@
 from fastapi import Request
-from pydantic import BaseModel
-# from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 
 from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword, FieldFilter
@@ -158,7 +156,6 @@ class BaseAuth(BaseRepository, BaseAuthJWT, CacheRedis):
             result=result
         )
         return error
-        
 
     async def logout(self, request: Request, user_agent: str) -> None:
         """string
@@ -230,7 +227,7 @@ class UserManage:
             await self.manager_auth.session.commit()
         else:
             return ErrorName.RoleDoesNotExist
-        
+
     async def change_password(self, user_agent: str, new_data: ChangePassword):
         '''
         Метод для изменения пароля пользователя
@@ -256,7 +253,7 @@ class UserManage:
             return user_obj
         user_profil = await self.get_user_profil(user_obj)
         return user_profil
-    
+
     async def change_profile_user(self, user_agent: str, new_data: ChangeProfil):
         '''
         Метод для изменения информации о пользователе
@@ -266,7 +263,6 @@ class UserManage:
         user_obj: User | ErrorName = await self.get_user_obj(user_agent)
         if not isinstance(user_obj, User):
             return user_obj
-        #нужна обработка ошибок для обновления БД
         data_check = dict()
         if new_data.first_name:
             user_obj.first_name = new_data.first_name
@@ -281,7 +277,7 @@ class UserManage:
         res_err = await self.search_for_duplicates(data_check)
         if isinstance(res_err, ErrorName):
             return res_err
-        
+
         if new_data.email:
             user_obj.email = new_data.email
         if new_data.login:
@@ -302,7 +298,7 @@ class UserManage:
             email=user_obj.email
         )
         return profil
-    
+
     async def get_user_obj(self, user_agent: str):
         user_data = await self.manager_auth.get_info_from_access_token(user_agent)
         if not isinstance(user_data, dict):

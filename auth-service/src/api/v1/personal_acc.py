@@ -4,12 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import Annotated
 from depends import get_user_manage
 from schemas.entity import UserProfil, ChangeProfil, ChangePassword, HistoryUser, ChangeLevel
-from models.entity import History
 from core.config import ErrorName
 
 
 router = APIRouter()
-
 
 
 @router.get('/self_data/')
@@ -20,7 +18,7 @@ async def profil_user(
     Метод возвращает информацию о пользователе.
     '''
 
-    user_profil: UserProfil = await user_manager.get_user_data(user_agent) #user_profile
+    user_profil: UserProfil = await user_manager.get_user_data(user_agent)
     match user_profil:
         case ErrorName.InvalidAccessToken:
             raise HTTPException(status_code=422, detail='Signature has expired')
@@ -28,8 +26,9 @@ async def profil_user(
             raise HTTPException(status_code=400, detail='подозрение на небезопасный вход')
     return user_profil
 
+
 @router.patch('/self_data/')
-async def profil_user(
+async def profile_user(
         self_data: ChangeProfil,
         user_agent: Annotated[str | None, Header()] = None,
         user_manager: UserManage = Depends(get_user_manage)) -> UserProfil:
@@ -51,7 +50,7 @@ async def profil_user(
 
 
 @router.post('/change_password/')
-async def profil_user(
+async def change_password(
         self_data: ChangePassword,
         user_agent: Annotated[str | None, Header()] = None,
         user_manager: UserManage = Depends(get_user_manage)) -> str:
@@ -72,13 +71,14 @@ async def profil_user(
 
 @router.get('/get_history/')
 async def get_history(
-    user_agent: Annotated[str | None, Header()] = None,
-    user_manager: UserManage = Depends(get_user_manage)) -> list[HistoryUser]:
+        user_agent: Annotated[str | None, Header()] = None,
+        user_manager: UserManage = Depends(get_user_manage)
+) -> list[HistoryUser]:
     '''
     Метод возвращает информацию о пользователе.
     '''
 
-    user_history: UserProfil = await user_manager.get_history(user_agent) #user_profile
+    user_history: UserProfil = await user_manager.get_history(user_agent)
     match user_history:
         case ErrorName.InvalidAccessToken:
             raise HTTPException(status_code=422, detail='Signature has expired')

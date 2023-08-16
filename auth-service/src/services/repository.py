@@ -1,8 +1,8 @@
 import uuid
-from typing import Any, Sequence
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, Select, Result, Row
+from sqlalchemy import select, or_, Select, Result
 from db.postgres import Base
 from models.entity import Role, User
 

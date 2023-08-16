@@ -1,18 +1,14 @@
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 import uvicorn
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request
 from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.exceptions import AuthJWTException
 
 from core.config import app_settings
 from db import redis
-from db.postgres import create_database
 
 from api.v1 import auth, personal_acc, roles
-
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 
 
 app = FastAPI(
@@ -22,11 +18,6 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-	exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
-	content = {'status_code': 10422, 'message': exc_str, 'data': None}
-	return JSONResponse(content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 @AuthJWT.load_config
 def get_config():
@@ -57,5 +48,3 @@ if __name__ == '__main__':
         host='0.0.0.0',
         port=8000,
     )
-
-

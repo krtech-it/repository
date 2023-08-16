@@ -1,13 +1,9 @@
 import uuid
 
-from schemas.entity import UserCreate, UserLogin, UserProfil, ChangeProfil, ChangePassword, RoleCreate
-from models.entity import User, Role, EventEnum
+from schemas.entity import RoleCreate
+from models.entity import User, Role
 from services.repository import BaseRepository
-from services.auth_jwt import BaseAuthJWT
-from services.history import BaseHistory
-from services.redis_cache import CacheRedis
-from services.role import BaseRole
-from core.config import app_settings, ErrorName
+from core.config import ErrorName
 
 
 class BaseAdmin(BaseRepository):
@@ -21,7 +17,7 @@ class BaseAdmin(BaseRepository):
         super().__init__(*args, **kwargs)
 
     async def create_role(self, data: RoleCreate):
-        role = await self.manager_auth.get_obj_by_attr_name(Role, 'name_role', data.name_role)
+        role = await self.manager_auth.get_obj_by_attr_name(Role, 'lvl', data.lvl)
         if role:
             return ErrorName.RoleAlreadyExists
         new_role = {

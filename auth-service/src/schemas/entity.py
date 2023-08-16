@@ -24,6 +24,7 @@ class UserCreate(BaseModel):
     last_name: str
     email: str
 
+
 class UserProfil(BaseModel):
     login: str
     first_name: str
@@ -31,20 +32,27 @@ class UserProfil(BaseModel):
     name_role: str
     email: str
 
+
 class ChangeProfil(BaseModel):
     login: str | None = Field(default=None)
     first_name: str | None = Field(default=None)
     last_name: str | None = Field(default=None)
-    email: str | None = Field(example="some_email@email.com", pattern=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', default=None)
+    email: str | None = Field(
+        example="some_email@email.com",
+        pattern=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+        default=None
+    )
 
 
 class ChangePassword(BaseModel):
     old_password: str
     new_password: str = Field(min_length=8)
 
+
 class UserLogin(BaseModel):
     login: str
     password: str
+
 
 class UserInDB(BaseModel):
     id: UUID

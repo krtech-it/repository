@@ -1,12 +1,10 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Header, Request, Cookie
+from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import Annotated
-from depends import get_repository_user, get_repository_role, get_admin
-from models.entity import Role
-from schemas.entity import UserCreate, UserLogin, RoleCreate, UserRole
+from depends import get_repository_user, get_admin
+from schemas.entity import RoleCreate, UserRole
 from services.user import BaseAuth
-from services.role import BaseRole
 from services.admin import BaseAdmin
 from core.config import ErrorName
 

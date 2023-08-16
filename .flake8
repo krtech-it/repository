@@ -1,2 +1,5 @@
 [flake8]
    max-line-length = 120
+   per-file-ignores =
+    auth-service/tests/*.py:E231,E501,W293,E303,E225,E131,F401
+    auth-service/src/migrations/*.py:E122,E128,W291

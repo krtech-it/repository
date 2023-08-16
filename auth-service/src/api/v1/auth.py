@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Header, Request, Cookie
+from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from typing import Annotated
-from depends import get_repository_user, get_repository_role
+from depends import get_repository_user
 from schemas.entity import UserCreate, UserLogin
 from services.user import BaseAuth
-from services.role import BaseRole
 from core.config import ErrorName
 
 router = APIRouter()
@@ -65,6 +64,7 @@ async def refresh(
 
 
 @router.get('/logout/')
-async def logout(request: Request, user_agent: Annotated[str | None,
-        Header()] = None, user_manager: BaseAuth = Depends(get_repository_user)):
+async def logout(
+        request: Request, user_agent: Annotated[str | None, Header()] = None,
+        user_manager: BaseAuth = Depends(get_repository_user)):
     await user_manager.logout(request, user_agent)

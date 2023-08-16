@@ -179,15 +179,13 @@ async def test_change_profile_user(change_profil, role_data, user_data, expected
         (
                 {"old_password": "test123433", "new_password": "123434ffr"},
                 {"login": "test1234", "password": "test1234", "first_name": "first_name", "last_name": "last_name", "role_id": uuid4(), "email": "testmail@mail.com", "is_admin": False},
-                {'status': HTTPStatus.BAD_REQUEST, 'response_body': {"detail":'Неверный пароль'}},
+                {'status': HTTPStatus.BAD_REQUEST, 'response_body': {"detail": 'Неверный пароль'}},
         ),
-    ]
-        
-    )
+    ])
 async def test_change_password(change_password, user_data, expected_answer, ac: AsyncClient, monkeypatch):
     async def mock_info_from_access_token(*args, **kwargs):
         return {"sub": str(uuid4())}
-    
+
     async def mock_get_obj_by_pk(*args, **kwargs):
         return User(
             login=user_data.get("login"),

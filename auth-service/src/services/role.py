@@ -1,14 +1,5 @@
-from fastapi import Request
-
-from schemas.entity import UserCreate, UserLogin, RoleCreate
-from models.entity import User, Role
+from models.entity import Role
 from services.repository import BaseRepository
-from services.auth_jwt import BaseAuthJWT
-from services.redis_cache import CacheRedis
-from core.config import app_settings, ErrorName
-from time import time
-
-import uuid
 
 
 class BaseRole(BaseRepository):
