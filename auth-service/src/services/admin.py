@@ -47,9 +47,9 @@ class BaseAdmin(BaseRepository):
         if role_obj and user_obj:
             user_obj.role_id = role_id
             await self.manager_auth.session.commit()
-        elif not role_obj:
+        elif user_obj and not role_obj:
             return ErrorName.RoleDoesNotExist
-        elif not user_obj:
+        elif role_obj and not user_obj:
             return ErrorName.UserDoesNotExist
         else:
             return ErrorName.DoesNotExist

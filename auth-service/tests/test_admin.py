@@ -127,6 +127,12 @@ async def test_update(query_data, expected_answer, mock_get_role, role_id, ac: A
                 {'status': HTTPStatus.BAD_REQUEST, 'response_body': {"detail": "Такого пользователя не существует"}},
                 role_with_certain_id,
                 None
+        ),
+        (
+                role_user_dict,
+                {'status': HTTPStatus.BAD_REQUEST, 'response_body': {"detail": "Такого пользователя и такой роли не существует"}},
+                None,
+                None
         )
     ]
 )
