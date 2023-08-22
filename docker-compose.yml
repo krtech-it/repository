@@ -7,15 +7,15 @@ services:
     restart: always
     env_file:
       - ./auth-service/.env.db.auth
-    ports:
-      - 5432:5432
+    expose:
+      - 5432
 
   redis_auth:
     image: redis:6.2-alpine
     container_name: redis_auth
     restart: always
-    ports:
-      - 6379:6379
+    expose:
+      - 6379
 
   auth_api:
     build: ./auth-service/src
@@ -28,26 +28,13 @@ services:
       - ./auth-service/.env.debug
     expose:
       - 8010
-#
-#  api_gateway:
-#    build: ./api_gateway/src
-#    container_name: api_gateway
-#    restart: always
-#    depends_on:
-#      - db_auth
-#      - redis_auth
-#    env_file:
-#      - ./api_gateway/.env.debug
-#    expose:
-#      - 8020
-#
+
   nginx:
     container_name: nginx
     image: nginx:alpine
     restart: always
     depends_on:
       - auth_api
-#      - api_gateway
     ports:
       - 80:80
     volumes:
